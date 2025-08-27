@@ -28,27 +28,27 @@ export default function Sell(_props: { path?: string }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      if (e.key >= '0' && e.key <= '9') {
+      if (e.key >= "0" && e.key <= "9") {
         onKey(e.key);
         e.preventDefault();
-      } else if (e.key === '.' || e.key === ',') {
-        onKey('.');
+      } else if (e.key === "." || e.key === ",") {
+        onKey(".");
         e.preventDefault();
-      } else if (e.key === 'Backspace') {
-        onKey('⌫');
+      } else if (e.key === "Backspace") {
+        onKey("⌫");
         e.preventDefault();
-      } else if (e.key.toLowerCase() === 'c') {
-        onKey('C');
+      } else if (e.key.toLowerCase() === "c") {
+        onKey("C");
         e.preventDefault();
-      } else if (e.key === 'Enter') {
-        if (parseFloat(amount || '0') > 0) {
-          nav('/wait-card');
+      } else if (e.key === "Enter") {
+        if (parseFloat(amount || "0") > 0) {
+          nav("/wait-card");
         }
         e.preventDefault();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [amount, nav]);
 
   return (

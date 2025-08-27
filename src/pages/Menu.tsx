@@ -27,7 +27,11 @@ export default function Menu(_props: { path?: string }) {
     },
   ];
   useEffect(() => {
-    console.log("Menu mounted with pp: ", paymentPointer, paymentPointer.trim().length);
+    console.log(
+      "Menu mounted with pp: ",
+      paymentPointer,
+      paymentPointer.trim().length,
+    );
     if (paymentPointer.trim().length == 0) {
       console.log("Redirecting to setup");
       nav("/setup");

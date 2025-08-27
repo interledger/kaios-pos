@@ -1,6 +1,9 @@
 import { Component, type ComponentChildren } from "preact";
 
-export class ErrorBoundary extends Component<{ children: ComponentChildren }, { hasError: boolean }> {
+export class ErrorBoundary extends Component<
+  { children: ComponentChildren },
+  { hasError: boolean }
+> {
   constructor(p: any) {
     super(p);
     this.state = {

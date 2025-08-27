@@ -9,8 +9,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-  "jsx": "react-jsx",
-  "jsxImportSource": "preact",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "strict": true,
     "baseUrl": "./",
     "paths": {

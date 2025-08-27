@@ -10,7 +10,10 @@ export function Header() {
         <a
           href="/menu"
           className="h-8 w-8 rounded-xl bg-emerald-400/20 grid place-items-center"
-          onClick={e => { e.preventDefault(); route('/menu'); }}
+          onClick={(e) => {
+            e.preventDefault();
+            route("/menu");
+          }}
         >
           <span className="text-emerald-300 font-bold">IL</span>
         </a>

@@ -96,6 +96,6 @@ export const useAppStore = create<Store>()(
         tx: state.tx,
         error: state.error,
       }),
-    }
-  )
+    },
+  ),
 );

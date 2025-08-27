@@ -24,34 +24,45 @@ export default function WaitCard({
   playRingtone,
   onTagLost,
   autoFocus = true,
-  className = ""
+  className = "",
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  const handleTagFound = useCallback((event: any) => {
-    const { tag } = event;
-    console.log("NfcDemo tag found:", tag);
+  const handleTagFound = useCallback(
+    (event: any) => {
+      const { tag } = event;
+      console.log("NfcDemo tag found:", tag);
 
-    if (!tag) return;
+      if (!tag) return;
 
-    // UX feedback
-    if ("vibrate" in navigator) navigator.vibrate?.(100);
-    playRingtone?.();
+      // UX feedback
+      if ("vibrate" in navigator) navigator.vibrate?.(100);
+      playRingtone?.();
 
-    // Your logic: only act on MIFARE-Classic
-    if (Array.isArray(tag.techList) && tag.techList.includes("MIFARE-Classic")) {
-      // prevent default so mozNfc doesn't immediately fire taglost
-      if (typeof event.preventDefault === "function") {
-        try { event.preventDefault(); } catch { }
+      // Your logic: only act on MIFARE-Classic
+      if (
+        Array.isArray(tag.techList) &&
+        tag.techList.includes("MIFARE-Classic")
+      ) {
+        // prevent default so mozNfc doesn't immediately fire taglost
+        if (typeof event.preventDefault === "function") {
+          try {
+            event.preventDefault();
+          } catch {}
+        }
+        decrement?.(tag);
       }
-      decrement?.(tag);
-    }
-  }, [decrement, playRingtone]);
+    },
+    [decrement, playRingtone],
+  );
 
-  const handleTagLost = useCallback((event: any) => {
-    console.log("NfcDemo tag lost:", event);
-    onTagLost?.(event);
-  }, [onTagLost]);
+  const handleTagLost = useCallback(
+    (event: any) => {
+      console.log("NfcDemo tag lost:", event);
+      onTagLost?.(event);
+    },
+    [onTagLost],
+  );
 
   useEffect(() => {
     if (autoFocus) {

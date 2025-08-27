@@ -2,15 +2,19 @@ import { useEffect, useRef } from "preact/hooks";
 import { route } from "preact-router";
 //import { useAppStore } from "@state/AppStore";
 import { useAppStore } from "@state/AppStore";
-import { get, validatePaymentPointer, WalletValidationError } from "@lib/paymentPointer";
+import {
+  get,
+  validatePaymentPointer,
+  WalletValidationError,
+} from "@lib/paymentPointer";
 import { tr } from "zod/v4/locales";
 import { set } from "zod/v4";
 
 export default function Setup(_props: { path?: string }) {
-
   console.log("Rendering Setup component");
   const nav = route;
-  const { paymentPointer, setPaymentPointer, setCurrency, error, setError } = useAppStore();
+  const { paymentPointer, setPaymentPointer, setCurrency, error, setError } =
+    useAppStore();
 
   const initialPointer = useRef(paymentPointer);
 
@@ -19,25 +23,26 @@ export default function Setup(_props: { path?: string }) {
     nav: any,
     setError: (msg: string) => void,
     setCurrency: (code: string) => void,
-    setPaymentPointer: (value: string) => void
+    setPaymentPointer: (value: string) => void,
   ) {
     setPaymentPointer(value);
 
     // Validate first
     try {
       validatePaymentPointer(value);
-      setError('');
+      setError("");
     } catch (error: any) {
       setError(error.message);
       return; // stop if validation fails
     }
-
   }
 
-
   useEffect(() => {
-    setError('');
-    console.log("Setup mounted with pp: ", (initialPointer.current, initialPointer.current.trim().length));
+    setError("");
+    console.log(
+      "Setup mounted with pp: ",
+      (initialPointer.current, initialPointer.current.trim().length),
+    );
     if (initialPointer.current && initialPointer.current.trim().length > 0) {
       nav("/menu");
     }
@@ -47,9 +52,9 @@ export default function Setup(_props: { path?: string }) {
     paymentPointer: string,
     nav: any,
     setError: (msg: string) => void,
-    setCurrency: (code: string) => void
+    setCurrency: (code: string) => void,
   ) {
-    if (error !== '') return;
+    if (error !== "") return;
 
     console.log("Handling enter press for payment pointer:", paymentPointer);
 
@@ -58,8 +63,8 @@ export default function Setup(_props: { path?: string }) {
       setCurrency(data.assetCode);
       nav("/menu");
     } catch (error) {
-      console.error('Error fetching payment pointer data:', error);
-      setError('Invalid payment pointer');
+      console.error("Error fetching payment pointer data:", error);
+      setError("Invalid payment pointer");
     }
   }
 
@@ -80,13 +85,18 @@ export default function Setup(_props: { path?: string }) {
               nav,
               setError,
               setCurrency,
-              setPaymentPointer
+              setPaymentPointer,
             );
           }}
           onKeyDown={async (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               e.preventDefault(); // prevent default only for Enter
-              await handleEnterPress(paymentPointer, nav, setError, setCurrency);
+              await handleEnterPress(
+                paymentPointer,
+                nav,
+                setError,
+                setCurrency,
+              );
             }
           }}
         />
