@@ -77,7 +77,7 @@ module.exports = {
       },
       {
         test: /\.(css|scss)$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader"],
+        use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
     ],
   },
@@ -93,9 +93,6 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: "src/manifest.webapp.json", to: "manifest.webapp" },
-        //{ from: "src/fake-data.json", to: "fake-data.json" },
-        //{ from: "src/index.html" },
-        //{ from: "src/locales", to: "locales" },
         { from: "assets", to: "assets" },
       ],
     }),

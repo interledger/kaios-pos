@@ -44,6 +44,7 @@
     "mini-css-extract-plugin": "^2.7.6",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "postcss": "^8.4.35",
+    "postcss-loader": "^8.1.1",
     "prettier": "^3.6.2",
     "tailwindcss": "^3.4.3",
     "ts-loader": "^9.5.1",
