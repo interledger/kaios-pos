@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "preact/hooks";
 import { route } from "preact-router";
-//import { useAppStore } from "@state/AppStore";
 import { useAppStore } from "@state/AppStore";
 import {
   get,
@@ -11,11 +10,19 @@ import { tr } from "zod/v4/locales";
 import { set } from "zod/v4";
 
 export default function Setup(_props: { path?: string }) {
-  console.log("Rendering Setup component");
   const nav = route;
-  const { paymentPointer, setPaymentPointer, setCurrency, error, setError } =
-    useAppStore();
+  const {
+    paymentPointer,
+    setPaymentPointer,
+    setCurrency,
+    error,
+    setError,
+    _hasHydrated,
+  } = useAppStore();
 
+  if (!_hasHydrated) {
+    return null; // or a loading spinner
+  }
   const initialPointer = useRef(paymentPointer);
 
   async function handlePaymentPointerChange(

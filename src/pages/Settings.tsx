@@ -1,10 +1,16 @@
 import { h } from "preact";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
+import { useEffect } from "preact/compat";
 export default function Settings(_props: { path?: string }) {
   const nav = route;
   const { currency, setCurrency, paymentPointer, setPaymentPointer } =
     useAppStore();
+  useEffect(() => {
+    if (paymentPointer.length == 0) {
+      nav("/setup");
+    }
+  }, []);
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between">

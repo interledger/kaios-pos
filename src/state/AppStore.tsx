@@ -25,6 +25,8 @@ type Store = {
   totalBalance: number; // computed
   error: string | null;
   setError: (v: string | null) => void;
+  _hasHydrated: boolean;
+  setHasHydrated: (v: boolean) => void;
 };
 
 const sampleTx: Tx[] = [
@@ -67,35 +69,81 @@ const sampleTx: Tx[] = [
 
 export const useAppStore = create<Store>()(
   persist(
-    (set, get) => ({
-      paymentPointer: "",
-      setPaymentPointer: (v) => set({ paymentPointer: v }),
+    (set, get) => {
+      return {
+        paymentPointer: "",
+        setPaymentPointer: (v: string) => set({ paymentPointer: v }),
 
-      currency: "EUR",
-      setCurrency: (v) => set({ currency: v }),
+        currency: "EUR",
+        setCurrency: (v: string) => set({ currency: v }),
 
-      amount: "0",
-      setAmount: (v) => set({ amount: v }),
+        amount: "0",
+        setAmount: (v: string) => set({ amount: v }),
 
-      tx: sampleTx,
-      setTx: (tx) => set({ tx }),
-
-      get totalBalance() {
-        return get().tx.reduce((a, t) => a + t.amount - t.fee, 0);
-      },
-
-      error: null,
-      setError: (v) => set({ error: v }),
-    }),
+        tx: sampleTx,
+        setTx: (tx: Tx[]) => set({ tx }),
+        error: null,
+        setError: (v: string | null) => set({ error: v }),
+        _hasHydrated: false,
+        setHasHydrated: (v: boolean) => set({ _hasHydrated: v })
+      };
+    },
     {
-      name: "ilf-pos-storage", // key in localStorage
-      partialize: (state) => ({
-        paymentPointer: state.paymentPointer,
-        currency: state.currency,
-        amount: state.amount,
-        tx: state.tx,
-        error: state.error,
-      }),
+      name: "ilfpos", // key in localStorage
+      version: 1,
+      merge: (persistedState: any, currentState: any) => {
+        try {
+          const plainKeys = Object.keys(persistedState).filter(
+            (k) => typeof persistedState[k] !== 'function'
+          );
+          const merged = { ...currentState };
+          for (const key of plainKeys) {
+            merged[key] = persistedState[key];
+          }
+          return merged;
+        } catch (e) {
+          console.error('Error in merge:', e);
+          return currentState;
+        }
+      },
+      onRehydrateStorage: () => (state) => {
+        // Always set hydrated to true, even if state is undefined (first load)
+        state?.setHasHydrated?.(true);
+        if (!state) {
+          setTimeout(() => {
+            // Use the store's setHasHydrated directly
+            try {
+              // @ts-ignore
+              import('../state/AppStore').then(mod => mod.useAppStore.getState().setHasHydrated(true));
+            } catch { }
+          }, 0);
+        }
+      },
     },
   ),
 );
+
+// Selector for totalBalance
+export function selectTotalBalance(state: Store) {
+  const tx = state.tx;
+  if (!Array.isArray(tx)) return 0;
+  return tx.reduce((a, t) => a + t.amount - t.fee, 0);
+}
+
+// Debug: Read and decode Zustand persisted state from localStorage
+export function debugReadPersistedState() {
+  try {
+    const raw = localStorage.getItem('ilfpos');
+    if (!raw) {
+      console.log('No ilfpos found in localStorage');
+      return null;
+    }
+    const decoded = JSON.parse(raw);
+    console.log('Decoded ilfpos:', decoded);
+    return decoded;
+  } catch (e) {
+    console.error('Error decoding ilfpos:', e);
+    return null;
+  }
+}
+

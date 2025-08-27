@@ -1,9 +1,10 @@
 import { route } from "preact-router";
-import { useAppStore } from "@state/AppStore";
+import { useAppStore, selectTotalBalance } from "@state/AppStore";
 import { formatCurrency } from "@lib/currency";
 export default function Balance(_props: { path?: string }) {
   const nav = route;
-  const { currency, totalBalance, tx } = useAppStore();
+  const { currency, tx } = useAppStore();
+  const totalBalance = selectTotalBalance(useAppStore());
   return (
     <section className="space-y-5">
       <div className="flex items-center justify-between">

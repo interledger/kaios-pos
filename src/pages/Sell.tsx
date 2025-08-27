@@ -4,7 +4,7 @@ import { formatCurrency } from "@lib/currency";
 import { useAppStore } from "@state/AppStore";
 export default function Sell(_props: { path?: string }) {
   const nav = route;
-  const { currency, amount, setAmount } = useAppStore();
+  const { paymentPointer, currency, amount, setAmount } = useAppStore();
   const onKey = (key: string) => {
     const { amount, setAmount } = useAppStore.getState();
 
@@ -50,7 +50,11 @@ export default function Sell(_props: { path?: string }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [amount, nav]);
-
+  useEffect(() => {
+    if (paymentPointer.length == 0) {
+      nav("/setup");
+    }
+  }, []);
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
