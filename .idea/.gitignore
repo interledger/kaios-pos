@@ -1,4 +1,9 @@
 # Default ignored files
 /shelf/
-.idea/*
+/.idea/*
+/.idea/
+/.idea/libraries/*
 /workspace.xml
+/misc.xml
+/interledger-pos.iml
+/*.xml

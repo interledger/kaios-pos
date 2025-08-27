@@ -19,12 +19,13 @@ type WaitCardProps = {
 };
 
 export default function WaitCard({
+  path,
   decrement,
   playRingtone,
   onTagLost,
   autoFocus = true,
-  className = "",
-}: WaitCardProps) {
+  className = ""
+}: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   const handleTagFound = useCallback((event: any) => {

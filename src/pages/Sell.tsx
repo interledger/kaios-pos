@@ -2,7 +2,7 @@ import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
 import { formatCurrency } from "@lib/currency";
 import { useAppStore } from "@state/AppStore";
-export default function Sell() {
+export default function Sell(_props: { path?: string }) {
   const nav = route;
   const { currency, amount, setAmount } = useAppStore();
   const onKey = (key: string) => {

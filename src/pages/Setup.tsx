@@ -6,7 +6,7 @@ import { get, validatePaymentPointer, WalletValidationError } from "@lib/payment
 import { tr } from "zod/v4/locales";
 import { set } from "zod/v4";
 
-export default function Setup() {
+export default function Setup(_props: { path?: string }) {
 
   console.log("Rendering Setup component");
   const nav = route;
@@ -76,7 +76,7 @@ export default function Setup() {
           value={paymentPointer}
           onChange={async (e) => {
             await handlePaymentPointerChange(
-              e.target.value,
+              (e.target as HTMLInputElement).value,
               nav,
               setError,
               setCurrency,

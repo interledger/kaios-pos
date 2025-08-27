@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
-export default function Settings() {
+export default function Settings(_props: { path?: string }) {
   const nav = route;
   const { currency, setCurrency, paymentPointer, setPaymentPointer } =
     useAppStore();
@@ -23,14 +23,14 @@ export default function Settings() {
           className="mt-2 w-full rounded-xl bg-white/10 px-2 py-2 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
           placeholder="e.g., $example.com/alice"
           value={paymentPointer}
-          onChange={(e) => setPaymentPointer(e.target.value)}
+          onChange={(e) => setPaymentPointer((e.target as HTMLInputElement).value)}
         />
       </label>
       <label className="block">
         <span className="text-sm text-white/80">Currency</span>
         <select
           value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
+          onChange={(e) => setCurrency((e.target as HTMLSelectElement).value)}
           className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
         >
           <option value="EUR">EUR (€)</option>

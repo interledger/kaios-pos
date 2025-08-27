@@ -1,8 +1,7 @@
-import React from "react";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
 import { formatCurrency } from "@lib/currency";
-export default function Balance() {
+export default function Balance(_props: { path?: string }) {
   const nav = route;
   const { currency, totalBalance, tx } = useAppStore();
   return (

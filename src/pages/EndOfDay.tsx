@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "preact/hooks";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
 import { formatCurrency } from "@lib/currency";
 import { computeDailyReport } from "@services/reports";
-export default function EndOfDay() {
+export default function EndOfDay(_props: { path?: string }) {
   const nav = route;
   const { currency, tx } = useAppStore();
   const [reportDate, setReportDate] = useState(() =>
@@ -33,7 +33,7 @@ export default function EndOfDay() {
           type="date"
           className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
           value={reportDate}
-          onChange={(e) => setReportDate(e.target.value)}
+          onChange={(e) => setReportDate((e.target as HTMLInputElement).value)}
         />
       </label>
       <div className="grid grid-cols-2 gap-3">
@@ -110,7 +110,7 @@ export default function EndOfDay() {
           type="email"
           placeholder="Send report to email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
           className="w-full rounded-2xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
         />
         <button

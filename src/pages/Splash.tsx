@@ -1,6 +1,6 @@
 import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
-export default function Splash() {
+export default function Splash(_props: { path?: string }) {
   const nav = route;
   useEffect(() => {
     const id = setTimeout(() => nav("/setup"), 900);
