@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "preact/hooks";
+import { route } from "preact-router";
 export default function Splash() {
-  const nav = useNavigate();
+  const nav = route;
   useEffect(() => {
     const id = setTimeout(() => nav("/setup"), 900);
     return () => clearTimeout(id);

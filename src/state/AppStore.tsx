@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
 export type Tx = {
   id: string;
   amount: number;
@@ -6,17 +8,25 @@ export type Tx = {
   currency: string;
   ts: Date;
 };
+
 type Store = {
   paymentPointer: string;
   setPaymentPointer: (v: string) => void;
+
   currency: string;
   setCurrency: (v: string) => void;
+
   amount: string;
-  setAmount: React.Dispatch<React.SetStateAction<string>>;
+  setAmount: (v: string) => void;
+
   tx: Tx[];
-  setTx: React.Dispatch<React.SetStateAction<Tx[]>>;
-  totalBalance: number;
+  setTx: (tx: Tx[]) => void;
+
+  totalBalance: number; // computed
+  error: string | null;
+  setError: (v: string | null) => void;
 };
+
 const sampleTx: Tx[] = [
   {
     id: "t1",
@@ -54,31 +64,38 @@ const sampleTx: Tx[] = [
     ts: new Date(Date.now() - 1000 * 60 * 30),
   },
 ];
-const Ctx = createContext<Store | null>(null);
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [paymentPointer, setPaymentPointer] = useState("");
-  const [currency, setCurrency] = useState("EUR");
-  const [amount, setAmount] = useState("0");
-  const [tx, setTx] = useState<Tx[]>(sampleTx);
-  const totalBalance = useMemo(
-    () => tx.reduce((a, t) => a + t.amount - t.fee, 0),
-    [tx],
-  );
-  const value: Store = {
-    paymentPointer,
-    setPaymentPointer,
-    currency,
-    setCurrency,
-    amount,
-    setAmount,
-    tx,
-    setTx,
-    totalBalance,
-  };
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-export function useAppStore() {
-  const v = useContext(Ctx);
-  if (!v) throw new Error("useAppStore must be used within AppProvider");
-  return v;
-}
+
+export const useAppStore = create<Store>()(
+  persist(
+    (set, get) => ({
+      paymentPointer: "",
+      setPaymentPointer: (v) => set({ paymentPointer: v }),
+
+      currency: "EUR",
+      setCurrency: (v) => set({ currency: v }),
+
+      amount: "0",
+      setAmount: (v) => set({ amount: v }),
+
+      tx: sampleTx,
+      setTx: (tx) => set({ tx }),
+
+      get totalBalance() {
+        return get().tx.reduce((a, t) => a + t.amount - t.fee, 0);
+      },
+
+      error: null,
+      setError: (v) => set({ error: v }),
+    }),
+    {
+      name: "ilf-pos-storage", // key in localStorage
+      partialize: (state) => ({
+        paymentPointer: state.paymentPointer,
+        currency: state.currency,
+        amount: state.amount,
+        tx: state.tx,
+        error: state.error,
+      }),
+    }
+  )
+);

@@ -1,5 +1,5 @@
 // WaitCard.tsx
-import React, { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "preact/hooks";
 
 declare global {
   interface Navigator {
@@ -11,7 +11,7 @@ declare global {
 }
 
 type WaitCardProps = {
-  decrement: (tag: any) => void;
+  decrement?: (tag: any) => void;
   playRingtone?: () => void;
   onTagLost?: (e: any) => void;
   autoFocus?: boolean;
@@ -41,9 +41,9 @@ export default function WaitCard({
     if (Array.isArray(tag.techList) && tag.techList.includes("MIFARE-Classic")) {
       // prevent default so mozNfc doesn't immediately fire taglost
       if (typeof event.preventDefault === "function") {
-        try { event.preventDefault(); } catch {}
+        try { event.preventDefault(); } catch { }
       }
-      decrement(tag);
+      decrement?.(tag);
     }
   }, [decrement, playRingtone]);
 

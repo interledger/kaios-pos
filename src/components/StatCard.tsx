@@ -1,4 +1,4 @@
-import React from "react";
+import { h } from "preact";
 export function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white/10 p-4">

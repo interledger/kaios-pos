@@ -1,4 +1,4 @@
-import React from "react";
+import { h } from "preact";
 export function Keypad({ onKey }: { onKey: (k: string) => void }) {
   const keys = [
     "1",

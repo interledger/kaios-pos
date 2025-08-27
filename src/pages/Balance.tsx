@@ -1,9 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
 import { formatCurrency } from "@lib/currency";
 export default function Balance() {
-  const nav = useNavigate();
+  const nav = route;
   const { currency, totalBalance, tx } = useAppStore();
   return (
     <section className="space-y-5">

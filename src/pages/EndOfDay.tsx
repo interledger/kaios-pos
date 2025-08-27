@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
 import { formatCurrency } from "@lib/currency";
 import { computeDailyReport } from "@services/reports";
 export default function EndOfDay() {
-  const nav = useNavigate();
+  const nav = route;
   const { currency, tx } = useAppStore();
   const [reportDate, setReportDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
