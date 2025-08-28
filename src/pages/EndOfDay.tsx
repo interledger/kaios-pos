@@ -1,4 +1,4 @@
-import { useState, useMemo } from "preact/hooks";
+import { useState, useMemo, useEffect } from "preact/hooks";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
 import { formatCurrency } from "@lib/currency";
@@ -15,6 +15,17 @@ export default function EndOfDay(_props: { path?: string }) {
     [reportDate, tx],
   );
   const { count, sum, fees, first, last, items } = report;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "Backspace") {
+        nav("/menu");
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [nav]);
   return (
     <section className="space-y-5">
       <div className="flex items-center justify-between">
@@ -104,25 +115,6 @@ export default function EndOfDay(_props: { path?: string }) {
             )}
           </tbody>
         </table>
-      </div>
-      <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-        <input
-          type="email"
-          placeholder="Send report to email"
-          value={email}
-          onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
-          className="w-full rounded-2xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
-        />
-        <button
-          onClick={() =>
-            alert(
-              `Sending report for ${reportDate} to ${email || "(no email)"}`,
-            )
-          }
-          className="rounded-2xl bg-emerald-500 px-6 py-3 font-semibold"
-        >
-          Send
-        </button>
       </div>
     </section>
   );

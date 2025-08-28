@@ -85,7 +85,7 @@ export const useAppStore = create<Store>()(
         error: null,
         setError: (v: string | null) => set({ error: v }),
         _hasHydrated: false,
-        setHasHydrated: (v: boolean) => set({ _hasHydrated: v })
+        setHasHydrated: (v: boolean) => set({ _hasHydrated: v }),
       };
     },
     {
@@ -94,7 +94,7 @@ export const useAppStore = create<Store>()(
       merge: (persistedState: any, currentState: any) => {
         try {
           const plainKeys = Object.keys(persistedState).filter(
-            (k) => typeof persistedState[k] !== 'function'
+            (k) => typeof persistedState[k] !== "function",
           );
           const merged = { ...currentState };
           for (const key of plainKeys) {
@@ -102,7 +102,7 @@ export const useAppStore = create<Store>()(
           }
           return merged;
         } catch (e) {
-          console.error('Error in merge:', e);
+          console.error("Error in merge:", e);
           return currentState;
         }
       },
@@ -114,8 +114,10 @@ export const useAppStore = create<Store>()(
             // Use the store's setHasHydrated directly
             try {
               // @ts-ignore
-              import('../state/AppStore').then(mod => mod.useAppStore.getState().setHasHydrated(true));
-            } catch { }
+              import("../state/AppStore").then((mod) =>
+                mod.useAppStore.getState().setHasHydrated(true),
+              );
+            } catch {}
           }, 0);
         }
       },
@@ -133,17 +135,16 @@ export function selectTotalBalance(state: Store) {
 // Debug: Read and decode Zustand persisted state from localStorage
 export function debugReadPersistedState() {
   try {
-    const raw = localStorage.getItem('ilfpos');
+    const raw = localStorage.getItem("ilfpos");
     if (!raw) {
-      console.log('No ilfpos found in localStorage');
+      console.log("No ilfpos found in localStorage");
       return null;
     }
     const decoded = JSON.parse(raw);
-    console.log('Decoded ilfpos:', decoded);
+    console.log("Decoded ilfpos:", decoded);
     return decoded;
   } catch (e) {
-    console.error('Error decoding ilfpos:', e);
+    console.error("Error decoding ilfpos:", e);
     return null;
   }
 }
-

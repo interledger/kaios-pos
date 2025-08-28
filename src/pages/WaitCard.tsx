@@ -1,5 +1,6 @@
 // WaitCard.tsx
 import { useEffect, useRef, useCallback } from "preact/hooks";
+import { route } from "preact-router";
 
 declare global {
   interface Navigator {
@@ -14,6 +15,7 @@ type WaitCardProps = {
   decrement?: (tag: any) => void;
   playRingtone?: () => void;
   onTagLost?: (e: any) => void;
+  onCancel?: () => void;
   autoFocus?: boolean;
   className?: string;
 };
@@ -23,6 +25,7 @@ export default function WaitCard({
   decrement,
   playRingtone,
   onTagLost,
+  onCancel,
   autoFocus = true,
   className = "",
 }: { path?: string } & WaitCardProps) {
@@ -67,27 +70,38 @@ export default function WaitCard({
   useEffect(() => {
     if (autoFocus) {
       const panel = panelRef.current;
-      // tiny delay can help some browsers
       setTimeout(() => panel?.focus(), 0);
     }
 
-    const nfc = window.navigator.mozNfc;
-    if (!nfc) {
-      console.warn("mozNfc not available on this device/browser.");
-      return;
+    let nfc: typeof window.navigator.mozNfc | undefined;
+    try {
+      nfc = window.navigator.mozNfc;
+      if (!nfc) throw new Error("mozNfc not available");
+      nfc.ontagfound = handleTagFound;
+      nfc.ontaglost = handleTagLost;
+      return () => {
+        if (nfc) {
+          nfc.ontagfound = null;
+          nfc.ontaglost = null;
+        }
+      };
+    } catch (err) {
+      console.warn("mozNfc not available or error:", err);
+      console.log("run later from here a cancel process function if needed");
+      onCancel?.();
     }
+  }, [autoFocus, handleTagFound, handleTagLost, onCancel]);
 
-    nfc.ontagfound = handleTagFound;
-    nfc.ontaglost = handleTagLost;
-
-    return () => {
-      // cleanup
-      if (nfc) {
-        nfc.ontagfound = null;
-        nfc.ontaglost = null;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Backspace" || e.key === "ArrowLeft") {
+        route("/sell");
+        e.preventDefault();
       }
     };
-  }, [autoFocus, handleTagFound, handleTagLost]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <div

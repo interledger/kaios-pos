@@ -35,7 +35,15 @@ export default function Sell(_props: { path?: string }) {
         onKey(".");
         e.preventDefault();
       } else if (e.key === "Backspace") {
-        onKey("⌫");
+        // Backspace: go to menu if amount is 0, else delete
+        if (parseFloat(amount || "0") === 0) {
+          nav("/menu");
+        } else {
+          onKey("⌫");
+        }
+        e.preventDefault();
+      } else if (e.key === "ArrowLeft") {
+        nav("/menu");
         e.preventDefault();
       } else if (e.key.toLowerCase() === "c") {
         onKey("C");
@@ -72,13 +80,6 @@ export default function Sell(_props: { path?: string }) {
           {formatCurrency(parseFloat(amount || "0"), currency)}
         </div>
       </div>
-      <button
-        onClick={() => nav("/wait-card")}
-        className="w-full rounded-xl bg-emerald-500 py-4 text-lg font-semibold disabled:opacity-50"
-        disabled={parseFloat(amount || "0") <= 0}
-      >
-        Continue
-      </button>
     </section>
   );
 }

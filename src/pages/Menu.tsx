@@ -1,7 +1,7 @@
 import { useAppStore } from "@state/AppStore";
-import { useEffect } from "preact/hooks";
-
+import { useEffect, useRef, useState } from "preact/hooks";
 import { route } from "preact-router";
+
 export default function Menu(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer } = useAppStore();
@@ -26,27 +26,58 @@ export default function Menu(_props: { path?: string }) {
       hint: "Configure device",
     },
   ];
+  const [focused, setFocused] = useState(0); // 0 = Sell
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   useEffect(() => {
-    console.log(
-      "Menu mounted with pp: ",
-      paymentPointer,
-      paymentPointer.trim().length,
-    );
     if (paymentPointer.trim().length == 0) {
-      console.log("Redirecting to setup");
       nav("/setup");
     }
   }, []);
+
+  useEffect(() => {
+    btnRefs.current[focused]?.focus();
+  }, [focused]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        setFocused((f) => (f + 1) % items.length);
+        e.preventDefault();
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        setFocused((f) => (f - 1 + items.length) % items.length);
+        e.preventDefault();
+      } else if (e.key === "Enter" || e.key === " ") {
+        nav(items[focused].path);
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [focused, nav]);
+
   return (
-    <section className="grid sm:grid-cols-2 gap-4 mt-6">
-      {items.map((it) => (
+    <section
+      className="flex flex-col gap-2 mt-2 w-full max-w-[270px] mx-auto px-1"
+      style={{ minWidth: 0 }}
+    >
+      {items.map((it, i) => (
         <button
           key={it.key}
+          ref={(el) => {
+            btnRefs.current[i] = el;
+          }}
+          tabIndex={i === focused ? 0 : -1}
           onClick={() => nav(it.path)}
-          className="rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 p-2 text-left shadow-inner"
+          className={`rounded-kai px-2 py-3 text-left shadow-inner transition-colors outline-none
+            ${i === focused ? "bg-kaiAccent text-kaiBg" : "bg-white/10 text-kaiText"}
+            text-base font-semibold focus:ring-2 focus:ring-kaiAccent`}
+          style={{ minWidth: 0 }}
         >
-          <div className="text-m font-semibold">{it.label}</div>
-          <div className="mt-1 text-xs text-white/70">{it.hint}</div>
+          <div className="flex flex-col">
+            <span>{it.label}</span>
+            <span className="text-xs text-kaiMuted">{it.hint}</span>
+          </div>
         </button>
       ))}
     </section>

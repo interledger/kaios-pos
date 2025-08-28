@@ -1,10 +1,22 @@
 import { route } from "preact-router";
 import { useAppStore, selectTotalBalance } from "@state/AppStore";
 import { formatCurrency } from "@lib/currency";
+import { useEffect } from "preact/hooks";
 export default function Balance(_props: { path?: string }) {
   const nav = route;
   const { currency, tx } = useAppStore();
   const totalBalance = selectTotalBalance(useAppStore());
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "Backspace") {
+        nav("/menu");
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [nav]);
   return (
     <section className="space-y-5">
       <div className="flex items-center justify-between">

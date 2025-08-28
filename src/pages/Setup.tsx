@@ -77,6 +77,16 @@ export default function Setup(_props: { path?: string }) {
 
   const valid = paymentPointer.trim().length > 0;
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "Backspace") {
+        nav("/menu");
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [nav]);
   return (
     <section className="space-y-6">
       <h2 className="text-xl font-semibold">Merchant setup</h2>
