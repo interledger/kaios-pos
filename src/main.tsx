@@ -1,5 +1,11 @@
-import { h } from "preact";
-import { render } from "preact";
+import { h, render } from "preact";
 import "./index.css";
 import AppRouter from "@routes/router";
-render(<AppRouter />, document.getElementById("root")!);
+import { AppStoreProvider } from "@state/AppStore";
+
+render(
+  <AppStoreProvider>
+    <AppRouter />
+  </AppStoreProvider>,
+  document.getElementById("root")!
+);

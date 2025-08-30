@@ -1,16 +1,26 @@
 {
-  "name": "Interledger-pos",
+  "name": "Interledger POS",
+  "version": "1.0.0",
+  "description": "Interledger POS App that works with the Interledger cards",
   "launch_path": "/index.html",
-  "type": "certified",
+  "type": "web",
   "developer": {
     "name": "Interledger",
-    "url": "https://github.com/Mozilla-TWQA",
-    "e-mail": "test@gmail.com"
+    "url": "https://github.com/interledger/",
+    "e-mail": "tech@interledger.org"
   },
   "icons": {
     "56": "assets/icons/app_56.png",
     "112": "assets/icons/app_112.png"
   },
+  "locales": {
+    "en-US": {
+      "name": "Interledger POS App",
+      "subtitle": "Interledger POS App",
+      "description": "POS app that works with the Interledger cards"
+    }
+  },
+  "default_locale": "en-US",
   "permissions": {
     "permissions": {},
     "settings": { "access": "readwrite" },

@@ -1,5 +1,6 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+
+import { createContext } from "preact";
+import { useContext, useReducer, useEffect } from "preact/hooks";
 
 export type Tx = {
   id: string;
@@ -9,25 +10,22 @@ export type Tx = {
   ts: Date;
 };
 
-type Store = {
+export type Store = {
   paymentPointer: string;
-  setPaymentPointer: (v: string) => void;
-
   currency: string;
-  setCurrency: (v: string) => void;
-
   amount: string;
-  setAmount: (v: string) => void;
-
   tx: Tx[];
-  setTx: (tx: Tx[]) => void;
-
-  totalBalance: number; // computed
   error: string | null;
-  setError: (v: string | null) => void;
   _hasHydrated: boolean;
-  setHasHydrated: (v: boolean) => void;
 };
+
+type Action =
+  | { type: "setPaymentPointer"; value: string }
+  | { type: "setCurrency"; value: string }
+  | { type: "setAmount"; value: string }
+  | { type: "setTx"; value: Tx[] }
+  | { type: "setError"; value: string | null }
+  | { type: "setHasHydrated"; value: boolean };
 
 const sampleTx: Tx[] = [
   {
@@ -67,72 +65,103 @@ const sampleTx: Tx[] = [
   },
 ];
 
-export const useAppStore = create<Store>()(
-  persist(
-    (set, get) => {
-      return {
-        paymentPointer: "",
-        setPaymentPointer: (v: string) => set({ paymentPointer: v }),
 
-        currency: "EUR",
-        setCurrency: (v: string) => set({ currency: v }),
+const initialState: Store = {
+  paymentPointer: "",
+  currency: "EUR",
+  amount: "0",
+  tx: sampleTx,
+  error: null,
+  _hasHydrated: false,
+};
 
-        amount: "0",
-        setAmount: (v: string) => set({ amount: v }),
+function reducer(state: Store, action: Action): Store {
+  switch (action.type) {
+    case "setPaymentPointer":
+      return { ...state, paymentPointer: action.value };
+    case "setCurrency":
+      return { ...state, currency: action.value };
+    case "setAmount":
+      return { ...state, amount: action.value };
+    case "setTx":
+      return { ...state, tx: action.value };
+    case "setError":
+      return { ...state, error: action.value };
+    case "setHasHydrated":
+      return { ...state, _hasHydrated: action.value };
+    default:
+      return state;
+  }
+}
 
-        tx: sampleTx,
-        setTx: (tx: Tx[]) => set({ tx }),
-        error: null,
-        setError: (v: string | null) => set({ error: v }),
-        _hasHydrated: false,
-        setHasHydrated: (v: boolean) => set({ _hasHydrated: v }),
+const StoreContext = createContext<
+  | [Store, React.Dispatch<Action>]
+  | undefined
+>(undefined);
+
+export function AppStoreProvider({ children }: { children: preact.ComponentChildren }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  // Hydrate from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ilfpos");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        dispatch({ type: "setPaymentPointer", value: parsed.paymentPointer || "" });
+        dispatch({ type: "setCurrency", value: parsed.currency || "EUR" });
+        dispatch({ type: "setAmount", value: parsed.amount || "0" });
+        dispatch({ type: "setTx", value: Array.isArray(parsed.tx) ? parsed.tx.map((t: any) => ({ ...t, ts: new Date(t.ts) })) : sampleTx });
+        dispatch({ type: "setError", value: parsed.error || null });
+      }
+    } catch (e) {
+      // ignore
+    }
+    dispatch({ type: "setHasHydrated", value: true });
+  }, []);
+
+  // Persist to localStorage
+  useEffect(() => {
+    if (state._hasHydrated) {
+      // Serialize to a plain object for localStorage
+      const toSave = {
+        ...state,
+        tx: state.tx.map((t) => ({ ...t, ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts })),
       };
-    },
-    {
-      name: "ilfpos", // key in localStorage
-      version: 1,
-      merge: (persistedState: any, currentState: any) => {
-        try {
-          const plainKeys = Object.keys(persistedState).filter(
-            (k) => typeof persistedState[k] !== "function",
-          );
-          const merged = { ...currentState };
-          for (const key of plainKeys) {
-            merged[key] = persistedState[key];
-          }
-          return merged;
-        } catch (e) {
-          console.error("Error in merge:", e);
-          return currentState;
-        }
-      },
-      onRehydrateStorage: () => (state) => {
-        // Always set hydrated to true, even if state is undefined (first load)
-        state?.setHasHydrated?.(true);
-        if (!state) {
-          setTimeout(() => {
-            // Use the store's setHasHydrated directly
-            try {
-              // @ts-ignore
-              import("../state/AppStore").then((mod) =>
-                mod.useAppStore.getState().setHasHydrated(true),
-              );
-            } catch {}
-          }, 0);
-        }
-      },
-    },
-  ),
-);
+      localStorage.setItem("ilfpos", JSON.stringify(toSave));
+    }
+  }, [state]);
+
+  return (
+    <StoreContext.Provider value={[state, dispatch]}>{children}</StoreContext.Provider>
+  );
+}
+
+// Custom hook to use the store
+export function useAppStore() {
+  const ctx = useContext(StoreContext);
+  if (!ctx) throw new Error("useAppStore must be used within AppStoreProvider");
+  const [state, dispatch] = ctx;
+  // Provide state and setter functions for compatibility
+  return {
+    ...state,
+    setPaymentPointer: (v: string) => dispatch({ type: "setPaymentPointer", value: v }),
+    setCurrency: (v: string) => dispatch({ type: "setCurrency", value: v }),
+    setAmount: (v: string) => dispatch({ type: "setAmount", value: v }),
+    setTx: (tx: Tx[]) => dispatch({ type: "setTx", value: tx }),
+    setError: (v: string | null) => dispatch({ type: "setError", value: v }),
+    setHasHydrated: (v: boolean) => dispatch({ type: "setHasHydrated", value: v }),
+  };
+}
 
 // Selector for totalBalance
-export function selectTotalBalance(state: Store) {
+export function selectTotalBalance(state: { tx: Tx[] }) {
   const tx = state.tx;
   if (!Array.isArray(tx)) return 0;
   return tx.reduce((a, t) => a + t.amount - t.fee, 0);
 }
 
-// Debug: Read and decode Zustand persisted state from localStorage
+// Debug: Read and decode persisted state from localStorage
 export function debugReadPersistedState() {
   try {
     const raw = localStorage.getItem("ilfpos");

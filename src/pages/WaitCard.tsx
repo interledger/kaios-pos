@@ -51,7 +51,7 @@ export default function WaitCard({
         if (typeof event.preventDefault === "function") {
           try {
             event.preventDefault();
-          } catch {}
+          } catch { }
         }
         decrement?.(tag);
       }

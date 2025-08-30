@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "webpack serve --config webpack.config.dev.cjs --open",
-    "build": "webpack --config webpack.config.prod.cjs",
+    "build": "NODE_ENV=development webpack --config webpack.config.prod.cjs",
     "prod": "NODE_ENV=production webpack --config webpack.config.prod.cjs",
     "preview": "npx serve dist",
     "typecheck": "tsc --noEmit",
@@ -17,8 +17,7 @@
     "@preact/preset-vite": "^2.10.2",
     "preact": "^10.27.1",
     "preact-router": "^4.1.2",
-    "zod": "^3.23.8",
-    "zustand": "^5.0.8"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",

@@ -1,5 +1,6 @@
 import { h } from "preact";
 import Router from "preact-router";
+import hashHistory from "@lib/hashHistory";
 import Layout from "@components/Layout";
 import Splash from "@pages/Splash";
 import Setup from "@pages/Setup";
@@ -13,7 +14,7 @@ import Settings from "@pages/Settings";
 export default function AppRouter() {
   return (
     <Layout>
-      <Router>
+      <Router history={hashHistory}>
         <Splash path="/" />
         <Setup path="/setup" />
         <Menu path="/menu" />

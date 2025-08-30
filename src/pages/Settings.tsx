@@ -4,8 +4,7 @@ import { useAppStore } from "@state/AppStore";
 import { useEffect, useState } from "preact/compat";
 export default function Settings(_props: { path?: string }) {
   const nav = route;
-  const { currency, setCurrency, paymentPointer, setPaymentPointer } =
-    useAppStore();
+  const { currency, setCurrency, paymentPointer, setPaymentPointer } = useAppStore();
   useEffect(() => {
     if (paymentPointer.length == 0) {
       nav("/setup");
@@ -14,7 +13,9 @@ export default function Settings(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "Backspace") {
+      const active = document.activeElement;
+      const isInput = active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.tagName === "TEXTAREA");
+      if (!isInput && (e.key === "ArrowLeft" || e.key === "Backspace")) {
         nav("/menu");
         e.preventDefault();
       }

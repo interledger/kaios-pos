@@ -6,10 +6,7 @@ export default function Sell(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer, currency, amount, setAmount } = useAppStore();
   const onKey = (key: string) => {
-    const { amount, setAmount } = useAppStore.getState();
-
     let newAmount = amount;
-
     if (key === "C") {
       newAmount = "0";
     } else if (key === "⌫") {
@@ -21,7 +18,6 @@ export default function Sell(_props: { path?: string }) {
       else if (amount.length < 9) newAmount = amount + key;
       // else leave as is
     }
-
     setAmount(newAmount);
   };
 

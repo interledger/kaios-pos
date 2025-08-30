@@ -9,7 +9,6 @@ export default function EndOfDay(_props: { path?: string }) {
   const [reportDate, setReportDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
   );
-  const [email, setEmail] = useState("");
   const report = useMemo(
     () => computeDailyReport(reportDate, tx),
     [reportDate, tx],

@@ -1,0 +1,13 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+        "browsers": [">0.2%", "not dead", "not op_mini all", "KaiOS >= 2.5"]
+      },
+      "useBuiltIns": "entry",
+      "corejs": 3
+    }],
+    "@babel/preset-react",
+    "@babel/preset-typescript"
+  ]
+}

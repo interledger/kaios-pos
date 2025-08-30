@@ -5,7 +5,7 @@ import { useEffect } from "preact/hooks";
 export default function Balance(_props: { path?: string }) {
   const nav = route;
   const { currency, tx } = useAppStore();
-  const totalBalance = selectTotalBalance(useAppStore());
+  const totalBalance = selectTotalBalance({ tx });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

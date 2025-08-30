@@ -6,8 +6,8 @@ import {
   validatePaymentPointer,
   WalletValidationError,
 } from "@lib/paymentPointer";
-import { tr } from "zod/v4/locales";
-import { set } from "zod/v4";
+// import { tr } from "zod/v4/locales";
+// import { set } from "zod/v4";
 
 export default function Setup(_props: { path?: string }) {
   const nav = route;
@@ -75,7 +75,7 @@ export default function Setup(_props: { path?: string }) {
     }
   }
 
-  const valid = paymentPointer.trim().length > 0;
+  //const valid = paymentPointer.trim().length > 0;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -87,12 +87,17 @@ export default function Setup(_props: { path?: string }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nav]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
   return (
     <section className="space-y-6">
       <h2 className="text-xl font-semibold">Merchant setup</h2>
       <label className="block">
         <span className="text-sm text-white/80">Payment pointer</span>
         <input
+          ref={inputRef}
           className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
           placeholder="e.g., $example.com/alice"
           value={paymentPointer}
