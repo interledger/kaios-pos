@@ -1,23 +1,35 @@
-# Interledger POS (split version)
+# Interledger POS for KaiOS phones
 
-This is the same UI you liked from `interledger-pos.zip`, now split into clean routes/components/layouts.
-Includes **all screens**: Splash, Setup (payment pointer), Menu, Sell (+ keypad), Wait for Card, Balance, End of Day, Settings.
+## Table of Contents
 
-## Quick start
+- [About](#about)
+- [Getting Started](#getting_started)
+- [Usage](#usage)
+- [Contributing](../CONTRIBUTING.md)
 
-```bash
-cd interledger-pos-split
-pnpm install   # or npm install / yarn
-pnpm run dev
+## About <a name = "about"></a>
+TBD
+
+## Getting Started <a name = "getting_started"></a>
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See [deployment](#deployment) for notes on how to deploy the project on a live system.
+
+### Installing
+
+A step by step series of examples that tell you how to get a development env running.
+
+As with every project, install dependencies with following command
+```
+pnpm install
 ```
 
-## Structure
+After that, you can run the app
+```
+pnpm dev
+```
 
-- `components/`: Layout, Header, Keypad, StatCard, ErrorBoundary
-- `pages/`: One file per screen
-- `routes/`: React Router with lazy-loaded pages
-- `state/`: Simple global store for pointer, currency, amount, tx
-- `services/`: Stubs for card-present + Open Payments + reporting
-- `lib/`: Currency format helpers
+## Deployment
+TBD
 
-Swap out the stubs in `src/services/*` with your real implementations.
+## Usage <a name = "usage"></a>
+Enter the amount and swipe a card :)
