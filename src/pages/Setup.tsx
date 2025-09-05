@@ -1,13 +1,7 @@
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
-import {
-  get,
-  validatePaymentPointer,
-  WalletValidationError,
-} from "@lib/paymentPointer";
-// import { tr } from "zod/v4/locales";
-// import { set } from "zod/v4";
+import { handlePaymentPointerEnter } from "@lib/paymentPointer";
 
 export default function Setup(_props: { path?: string }) {
   const nav = route;
@@ -25,24 +19,7 @@ export default function Setup(_props: { path?: string }) {
   }
   const initialPointer = useRef(paymentPointer);
 
-  async function handlePaymentPointerChange(
-    value: string,
-    nav: any,
-    setError: (msg: string) => void,
-    setCurrency: (code: string) => void,
-    setPaymentPointer: (value: string) => void,
-  ) {
-    setPaymentPointer(value);
-
-    // Validate first
-    try {
-      validatePaymentPointer(value);
-      setError("");
-    } catch (error: any) {
-      setError(error.message);
-      return; // stop if validation fails
-    }
-  }
+  const [paymentPointerInput, setPaymentPointerInput] = useState("");
 
   useEffect(() => {
     setError("");
@@ -55,38 +32,17 @@ export default function Setup(_props: { path?: string }) {
     }
   }, []);
 
-  async function handleEnterPress(
-    paymentPointer: string,
-    nav: any,
-    setError: (msg: string) => void,
-    setCurrency: (code: string) => void,
-  ) {
-    if (error !== "") return;
-
-    console.log("Handling enter press for payment pointer:", paymentPointer);
-
-    try {
-      const data = await get(paymentPointer);
-      setCurrency(data.assetCode);
-      nav("/menu");
-    } catch (error) {
-      console.error("Error fetching payment pointer data:", error);
-      setError("Invalid payment pointer");
-    }
-  }
-
-  //const valid = paymentPointer.trim().length > 0;
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "Backspace") {
+      if (paymentPointer !== "" && paymentPointerInput !== "" && (e.key === "ArrowLeft" || e.key === "Backspace")) {
+        console.log("Navigating to menu", paymentPointerInput);
         nav("/menu");
         e.preventDefault();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nav]);
+  }, [nav, paymentPointerInput, paymentPointer]);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     inputRef.current?.focus();
@@ -95,46 +51,29 @@ export default function Setup(_props: { path?: string }) {
     <section className="space-y-6">
       <h2 className="text-xl font-semibold">Merchant setup</h2>
       <label className="block">
-        <span className="text-sm text-white/80">Payment pointer</span>
+        <span className="text-sm text-white/80" data-l10n-id="payment-pointer"></span>
         <input
           ref={inputRef}
           className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
           placeholder="e.g., $example.com/alice"
-          value={paymentPointer}
-          onChange={async (e) => {
-            await handlePaymentPointerChange(
-              (e.target as HTMLInputElement).value,
-              nav,
-              setError,
-              setCurrency,
-              setPaymentPointer,
-            );
-          }}
+          value={paymentPointerInput}
           onKeyDown={async (e) => {
             if (e.key === "Enter") {
-              e.preventDefault(); // prevent default only for Enter
-              await handleEnterPress(
-                paymentPointer,
-                nav,
+              e.preventDefault();
+              const value = (e.target as HTMLInputElement).value;
+              await handlePaymentPointerEnter(value, {
                 setError,
+                setPaymentPointer,
+                setPaymentPointerInput,
                 setCurrency,
-              );
+                nav,
+              });
             }
           }}
         />
         {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
       </label>
-      {/* <button
-        onClick={async () => {
-          const data = await get(paymentPointer);
-          setCurrency(data.assetCode);
-          nav("/menu");
-        }}
-        disabled={!valid}
-        className="w-full rounded-2xl bg-emerald-500 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Continue
-      </button> */}
+
     </section>
   );
 }

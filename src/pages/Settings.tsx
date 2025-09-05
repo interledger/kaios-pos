@@ -1,10 +1,16 @@
 import { h } from "preact";
 import { route } from "preact-router";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { useAppStore } from "@state/AppStore";
-import { useEffect, useState } from "preact/compat";
+import { handlePaymentPointerEnter } from "@lib/paymentPointer";
 export default function Settings(_props: { path?: string }) {
   const nav = route;
-  const { currency, setCurrency, paymentPointer, setPaymentPointer } = useAppStore();
+  const { error,
+    setError, setCurrency, paymentPointer, setPaymentPointer } = useAppStore();
+  const [paymentPointerInput, setPaymentPointerInput] = useState(paymentPointer);
+
+  // handleEnterPress is now handled by handlePaymentPointerEnter helper
+
   useEffect(() => {
     if (paymentPointer.length == 0) {
       nav("/setup");
@@ -13,9 +19,11 @@ export default function Settings(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const active = document.activeElement;
-      const isInput = active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.tagName === "TEXTAREA");
-      if (!isInput && (e.key === "ArrowLeft" || e.key === "Backspace")) {
+      // lets remove this for now, check again after testing
+      // const active = document.activeElement;
+      // const isInput = active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.tagName === "TEXTAREA");
+      // !isInput &&  || e.key === "Backspace"
+      if ((e.key === "ArrowLeft" || e.key === "SoftRight" || e.key === "EndCall")) {
         nav("/menu");
         e.preventDefault();
       }
@@ -23,10 +31,10 @@ export default function Settings(_props: { path?: string }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nav]);
-  const [email, setEmail] = useState("");
-  const [reportDate, setReportDate] = useState(() =>
-    new Date().toISOString().slice(0, 10),
-  );
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between">
@@ -42,49 +50,26 @@ export default function Settings(_props: { path?: string }) {
       <label className="block">
         <span className="text-sm text-white/80">Payment pointer</span>
         <input
+          ref={inputRef}
           className="mt-2 w-full rounded-xl bg-white/10 px-2 py-2 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
           placeholder="e.g., $example.com/alice"
-          value={paymentPointer}
-          onChange={(e) =>
-            setPaymentPointer((e.target as HTMLInputElement).value)
-          }
+          value={paymentPointerInput}
+          onKeyDown={async (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const value = (e.target as HTMLInputElement).value;
+              await handlePaymentPointerEnter(value, {
+                setError,
+                setPaymentPointer,
+                setPaymentPointerInput,
+                setCurrency,
+                nav,
+              });
+            }
+          }}
         />
+        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
       </label>
-      <label className="block">
-        <span className="text-sm text-white/80">Currency</span>
-        <select
-          value={currency}
-          onChange={(e) => setCurrency((e.target as HTMLSelectElement).value)}
-          className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
-        >
-          <option value="EUR">EUR (€)</option>
-          <option value="USD">USD ($)</option>
-          <option value="GBP">GBP (£)</option>
-        </select>
-      </label>
-      <div className="rounded-2xl bg-white/5 p-4 text-sm text-white/70">
-        <p className="font-medium text-white">About</p>
-        <p className="mt-1">Wire up real APIs in src/services/*.</p>
-      </div>
-      <div className="grid gap-3 md:grid-cols-[1fr_auto] mt-4">
-        <input
-          type="email"
-          placeholder="Send report to email"
-          value={email}
-          onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
-          className="w-full rounded-2xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
-        />
-        <button
-          onClick={() =>
-            alert(
-              `Sending report for ${reportDate} to ${email || "(no email)"}`,
-            )
-          }
-          className="rounded-2xl bg-emerald-500 px-6 py-3 font-semibold"
-        >
-          Send
-        </button>
-      </div>
     </section>
   );
 }

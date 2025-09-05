@@ -1,3 +1,45 @@
+export async function handlePaymentPointerEnter(
+  pp: string,
+  {
+    setError,
+    setPaymentPointer,
+    setPaymentPointerInput,
+    setCurrency,
+    nav,
+  }: {
+    setError: (msg: string) => void;
+    setPaymentPointer: (pp: string) => void;
+    setPaymentPointerInput: (pp: string) => void;
+    setCurrency: (currency: string) => void;
+    nav: (path: string) => void;
+  },
+) {
+  setPaymentPointerInput(pp);
+  try {
+    validatePaymentPointer(pp);
+    setError("");
+  } catch (error: any) {
+    setError(error.message);
+    return false;
+  }
+  try {
+    const data = await get(pp);
+    setPaymentPointer(pp);
+    setCurrency(data.assetCode);
+    nav("/menu");
+    return true;
+  } catch (error) {
+    console.error("Error fetching payment pointer data:", error);
+    setError("Invalid payment pointer");
+    return false;
+  }
+}
+type WalletAddress = {
+  id: string;
+  assetCode: string;
+  authServer: string;
+  resourceServer: string;
+};
 export class WalletValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -14,6 +56,18 @@ function normalize(paymentPointer: string) {
   return `https://${withoutDollar}`;
 }
 
+function isWalletAddress(x: unknown): x is WalletAddress {
+  if (!x || typeof x !== "object") return false;
+  const o = x as Record<string, unknown>;
+  return (
+    typeof o.id === "string" &&
+    typeof o.authServer === "string" &&
+    o.authServer.startsWith("https://") &&
+    typeof o.resourceServer === "string" &&
+    o.resourceServer.startsWith("https://")
+  );
+}
+
 export async function get(paymentPointer: string) {
   const endpoint = normalize(paymentPointer);
   console.log("ENDPOINT: ", endpoint);
@@ -23,10 +77,14 @@ export async function get(paymentPointer: string) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to resolve Payment Pointer");
+    throw new Error("Failed to access the wallet address url");
   }
 
-  return res.json();
+  const json = await res.json();
+  if (!isWalletAddress(json))
+    throw new Error("Invalid wallet response for " + paymentPointer);
+
+  return json;
 }
 
 export function validatePaymentPointer(paymentPointer: string): boolean {
