@@ -86,15 +86,22 @@ export default function WaitCard({
         }
       };
     } catch (err) {
-      console.warn("mozNfc not available or error:", err);
+      console.log("mozNfc not available or error:", err);
       console.log("run later from here a cancel process function if needed");
-      onCancel?.();
+      // commenting out this for now.
+      //onCancel?.(); // Uncomment if we want to auto-cancel when NFC is not available
     }
   }, [autoFocus, handleTagFound, handleTagLost, onCancel]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Backspace" || e.key === "ArrowLeft") {
+
+      if (
+        e.key === "Backspace" ||
+        e.key === "ArrowLeft" ||
+        e.key === "SoftRight" || //lets see if this works.
+        e.key === "EndCall"      //lets see if this works.
+      ) {
         route("/sell");
         e.preventDefault();
       }
