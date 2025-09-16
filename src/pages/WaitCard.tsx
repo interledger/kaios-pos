@@ -1,6 +1,14 @@
 // WaitCard.tsx
 import { useEffect, useRef, useCallback } from "preact/hooks";
 import { route } from "preact-router";
+import {
+  createTransactionData,
+  createGenerateACCommand,
+  uint8ArrayToHexString,
+  APDU_COMMANDS,
+  hexStringToUint8Array,
+} from "@lib/generateAC";
+import { createPaymentServiceData } from "@lib/paymentService";
 
 declare global {
   interface Navigator {
@@ -9,6 +17,17 @@ declare global {
       ontaglost: ((e: any) => void) | null;
     };
   }
+}
+
+interface MozNFCTag {
+  id: Uint8Array;
+  techList: string[];
+  isLost: boolean;
+  selectTech: (techType: string) => any;
+}
+
+interface MozNFCTech {
+  transceive: (data: Uint8Array) => Promise<Uint8Array>;
 }
 
 type WaitCardProps = {
@@ -31,8 +50,78 @@ export default function WaitCard({
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
+  const sendAPDUCommands = useCallback(async (tag: MozNFCTag) => {
+    try {
+      console.log("Starting APDU communication with tag...");
+
+      if (tag.techList.indexOf("ISO-DEP") === -1) {
+        console.error("Tag does not support ISO-DEP protocol");
+        return;
+      }
+
+      const tech = tag.selectTech("ISO-DEP");
+      if (!tech) {
+        console.error("Failed to select ISO-DEP technology");
+        return;
+      }
+
+      console.log("Selected ISO-DEP technology, tech object:", tech);
+
+      // Send SELECT PPSE command
+      console.log("=== SELECT PPSE COMMAND ===");
+      console.log("Command hex string:", APDU_COMMANDS.SELECT_PPSE);
+      const selectPPSE = hexStringToUint8Array(APDU_COMMANDS.SELECT_PPSE);
+      console.log("Command bytes (Uint8Array):", selectPPSE);
+      console.log("Command bytes (hex):", uint8ArrayToHexString(selectPPSE));
+
+      const selectResponse = await tech.transceive(selectPPSE);
+      console.log("Response bytes (Uint8Array):", selectResponse);
+      console.log(
+        "Response bytes (hex):",
+        uint8ArrayToHexString(selectResponse),
+      );
+      console.log("Response length:", selectResponse.length, "bytes");
+
+      // Create transaction data
+      console.log("=== TRANSACTION DATA ===");
+      const transactionData = createTransactionData(10); // 10 cents
+      console.log(
+        "Transaction data:",
+        JSON.stringify(transactionData, null, 2),
+      );
+
+      // Send GENERATE AC command with transaction data
+      console.log("=== GENERATE AC COMMAND ===");
+      const generateAC = createGenerateACCommand(transactionData);
+      console.log("Command bytes (Uint8Array):", generateAC);
+      console.log("Command bytes (hex):", uint8ArrayToHexString(generateAC));
+      console.log("Command length:", generateAC.length, "bytes");
+
+      const generateResponse = await tech.transceive(generateAC);
+      console.log("Response bytes (Uint8Array):", generateResponse);
+      console.log(
+        "Response bytes (hex):",
+        uint8ArrayToHexString(generateResponse),
+      );
+      console.log("Response length:", generateResponse.length, "bytes");
+
+      // Create payment service data
+      const paymentData = createPaymentServiceData(transactionData);
+      console.log("=== PAYMENT SERVICE JSON ===");
+      console.log(
+        "Transaction JSON for payment service:",
+        JSON.stringify(paymentData, null, 2),
+      );
+
+      console.log("APDU communication completed successfully");
+    } catch (error) {
+      console.error("Error during APDU communication:", error);
+    }
+  }, []);
+
   const handleTagFound = useCallback(
     (event: any) => {
+      console.log("event", event);
       const { tag } = event;
       console.log("NfcDemo tag found:", tag);
 
@@ -42,21 +131,31 @@ export default function WaitCard({
       if ("vibrate" in navigator) navigator.vibrate?.(100);
       playRingtone?.();
 
-      // Your logic: only act on MIFARE-Classic
       if (
         Array.isArray(tag.techList) &&
-        tag.techList.includes("MIFARE-Classic")
+        tag.techList.indexOf("ISO-DEP") !== -1
       ) {
+        console.log("Tag supports ISO-DEP, starting APDU communication...");
+        console.log("Available technologies:", tag.techList);
+        console.log("Tag object methods:", Object.getOwnPropertyNames(tag));
+
         // prevent default so mozNfc doesn't immediately fire taglost
         if (typeof event.preventDefault === "function") {
           try {
             event.preventDefault();
-          } catch { }
+          } catch {}
         }
-        decrement?.(tag);
+
+        // Send APDU commands
+        sendAPDUCommands(tag as MozNFCTag);
+      } else {
+        console.log(
+          "Tag does not support required technologies:",
+          tag.techList,
+        );
       }
     },
-    [decrement, playRingtone],
+    [decrement, playRingtone, sendAPDUCommands],
   );
 
   const handleTagLost = useCallback(
@@ -95,12 +194,11 @@ export default function WaitCard({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-
       if (
         e.key === "Backspace" ||
         e.key === "ArrowLeft" ||
         e.key === "SoftRight" || //lets see if this works.
-        e.key === "EndCall"      //lets see if this works.
+        e.key === "EndCall" //lets see if this works.
       ) {
         route("/sell");
         e.preventDefault();

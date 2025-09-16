@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Interledger POS App that works with the Interledger cards",
   "launch_path": "/index.html",
-  "type": "web",
+  "type": "certified",
   "developer": {
     "name": "Interledger",
     "url": "https://github.com/interledger/",

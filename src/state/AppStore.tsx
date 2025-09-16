@@ -1,5 +1,5 @@
-
 import { createContext } from "preact";
+import React from "preact/compat";
 import { useContext, useReducer, useEffect } from "preact/hooks";
 
 export type Tx = {
@@ -65,7 +65,6 @@ const sampleTx: Tx[] = [
   },
 ];
 
-
 const initialState: Store = {
   paymentPointer: "",
   currency: "EUR",
@@ -94,12 +93,15 @@ function reducer(state: Store, action: Action): Store {
   }
 }
 
-const StoreContext = createContext<
-  | [Store, React.Dispatch<Action>]
-  | undefined
->(undefined);
+const StoreContext = createContext<[Store, React.Dispatch<Action>] | undefined>(
+  undefined,
+);
 
-export function AppStoreProvider({ children }: { children: preact.ComponentChildren }) {
+export function AppStoreProvider({
+  children,
+}: {
+  children: preact.ComponentChildren;
+}) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   // Hydrate from localStorage
@@ -108,10 +110,18 @@ export function AppStoreProvider({ children }: { children: preact.ComponentChild
       const raw = localStorage.getItem("ilfpos");
       if (raw) {
         const parsed = JSON.parse(raw);
-        dispatch({ type: "setPaymentPointer", value: parsed.paymentPointer || "" });
+        dispatch({
+          type: "setPaymentPointer",
+          value: parsed.paymentPointer || "https://ilp.dev/009" || "",
+        });
         dispatch({ type: "setCurrency", value: parsed.currency || "EUR" });
         dispatch({ type: "setAmount", value: parsed.amount || "0" });
-        dispatch({ type: "setTx", value: Array.isArray(parsed.tx) ? parsed.tx.map((t: any) => ({ ...t, ts: new Date(t.ts) })) : sampleTx });
+        dispatch({
+          type: "setTx",
+          value: Array.isArray(parsed.tx)
+            ? parsed.tx.map((t: any) => ({ ...t, ts: new Date(t.ts) }))
+            : sampleTx,
+        });
         dispatch({ type: "setError", value: parsed.error || null });
       }
     } catch (e) {
@@ -126,14 +136,19 @@ export function AppStoreProvider({ children }: { children: preact.ComponentChild
       // Serialize to a plain object for localStorage
       const toSave = {
         ...state,
-        tx: state.tx.map((t) => ({ ...t, ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts })),
+        tx: state.tx.map((t) => ({
+          ...t,
+          ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts,
+        })),
       };
       localStorage.setItem("ilfpos", JSON.stringify(toSave));
     }
   }, [state]);
 
   return (
-    <StoreContext.Provider value={[state, dispatch]}>{children}</StoreContext.Provider>
+    <StoreContext.Provider value={[state, dispatch]}>
+      {children}
+    </StoreContext.Provider>
   );
 }
 
@@ -145,12 +160,14 @@ export function useAppStore() {
   // Provide state and setter functions for compatibility
   return {
     ...state,
-    setPaymentPointer: (v: string) => dispatch({ type: "setPaymentPointer", value: v }),
+    setPaymentPointer: (v: string) =>
+      dispatch({ type: "setPaymentPointer", value: v }),
     setCurrency: (v: string) => dispatch({ type: "setCurrency", value: v }),
     setAmount: (v: string) => dispatch({ type: "setAmount", value: v }),
     setTx: (tx: Tx[]) => dispatch({ type: "setTx", value: tx }),
     setError: (v: string | null) => dispatch({ type: "setError", value: v }),
-    setHasHydrated: (v: boolean) => dispatch({ type: "setHasHydrated", value: v }),
+    setHasHydrated: (v: boolean) =>
+      dispatch({ type: "setHasHydrated", value: v }),
   };
 }
 
