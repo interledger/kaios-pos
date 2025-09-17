@@ -5,9 +5,10 @@ import { useAppStore } from "@state/AppStore";
 import { handlePaymentPointerEnter } from "@lib/paymentPointer";
 export default function Settings(_props: { path?: string }) {
   const nav = route;
-  const { error,
-    setError, setCurrency, paymentPointer, setPaymentPointer } = useAppStore();
-  const [paymentPointerInput, setPaymentPointerInput] = useState(paymentPointer);
+  const { error, setError, setCurrency, paymentPointer, setPaymentPointer } =
+    useAppStore();
+  const [paymentPointerInput, setPaymentPointerInput] =
+    useState(paymentPointer);
   const [focused, setFocused] = useState(0); // 0 = input, 1 = delete button
   const inputRef = useRef<HTMLInputElement>(null);
   const deleteBtnRef = useRef<HTMLButtonElement>(null);

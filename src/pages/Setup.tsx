@@ -34,7 +34,11 @@ export default function Setup(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (paymentPointer !== "" && paymentPointerInput !== "" && (e.key === "ArrowLeft" || e.key === "Backspace")) {
+      if (
+        paymentPointer !== "" &&
+        paymentPointerInput !== "" &&
+        (e.key === "ArrowLeft" || e.key === "Backspace")
+      ) {
         console.log("Navigating to menu", paymentPointerInput);
         nav("/menu");
         e.preventDefault();
