@@ -5,9 +5,10 @@ import { useAppStore } from "@state/AppStore";
 import { handlePaymentPointerEnter } from "@lib/paymentPointer";
 export default function Settings(_props: { path?: string }) {
   const nav = route;
-  const { error,
-    setError, setCurrency, paymentPointer, setPaymentPointer } = useAppStore();
-  const [paymentPointerInput, setPaymentPointerInput] = useState(paymentPointer);
+  const { error, setError, setCurrency, paymentPointer, setPaymentPointer } =
+    useAppStore();
+  const [paymentPointerInput, setPaymentPointerInput] =
+    useState(paymentPointer);
 
   // handleEnterPress is now handled by handlePaymentPointerEnter helper
 
@@ -23,7 +24,11 @@ export default function Settings(_props: { path?: string }) {
       // const active = document.activeElement;
       // const isInput = active && (active.tagName === "INPUT" || active.tagName === "SELECT" || active.tagName === "TEXTAREA");
       // !isInput &&  || e.key === "Backspace"
-      if ((e.key === "ArrowLeft" || e.key === "SoftRight" || e.key === "EndCall")) {
+      if (
+        e.key === "ArrowLeft" ||
+        e.key === "SoftRight" ||
+        e.key === "EndCall"
+      ) {
         nav("/menu");
         e.preventDefault();
       }

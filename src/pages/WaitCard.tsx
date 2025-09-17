@@ -7,8 +7,10 @@ import {
   uint8ArrayToHexString,
   APDU_COMMANDS,
   hexStringToUint8Array,
+  extractRawDataFromAPDU,
 } from "@lib/generateAC";
 import { createPaymentServiceData } from "@lib/paymentService";
+import { useAppStore } from "@state/AppStore";
 
 declare global {
   interface Navigator {
@@ -49,75 +51,68 @@ export default function WaitCard({
   className = "",
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const { paymentPointer, amount } = useAppStore();
 
-  const sendAPDUCommands = useCallback(async (tag: MozNFCTag) => {
-    try {
-      console.log("Starting APDU communication with tag...");
+  const sendAPDUCommands = useCallback(
+    async (tag: MozNFCTag) => {
+      try {
+        console.log("Starting APDU communication with tag...");
 
-      if (tag.techList.indexOf("ISO-DEP") === -1) {
-        console.error("Tag does not support ISO-DEP protocol");
-        return;
+        if (tag.techList.indexOf("ISO-DEP") === -1) {
+          console.error("Tag does not support ISO-DEP protocol");
+          return;
+        }
+
+        const tech = tag.selectTech("ISO-DEP");
+        if (!tech) {
+          console.error("Failed to select ISO-DEP technology");
+          return;
+        }
+
+        console.log("Selected ISO-DEP technology, tech object:", tech);
+
+        // Send SELECT PPSE command
+        const selectPPSE = hexStringToUint8Array(APDU_COMMANDS.SELECT_PPSE);
+        await tech.transceive(selectPPSE);
+
+        const now = new Date();
+        const timestamp = now.getTime(); // UTC timestamp
+        const amountInCents = Math.floor(parseFloat(amount || "0") * 100);
+        const transactionData = createTransactionData(
+          amountInCents,
+          paymentPointer,
+        );
+
+        const generateAC = createGenerateACCommand(transactionData);
+
+        const rawData = extractRawDataFromAPDU(generateAC);
+
+        console.log("=== GENERATE AC COMMAND ===");
+        console.log(uint8ArrayToHexString(generateAC));
+
+        const generateResponse = await tech.transceive(generateAC);
+
+        console.log("=== GENERATE AC RESPONSE ===");
+        console.log(uint8ArrayToHexString(generateResponse));
+
+        // Create payment json to be sent to rafiki
+        const paymentData = createPaymentServiceData(
+          transactionData,
+          generateResponse,
+          rawData,
+          timestamp,
+        );
+
+        console.log("=== Rafiki payment JSON ===");
+        console.log(JSON.stringify(paymentData, null, 2));
+
+        console.log("APDU communication completed successfully");
+      } catch (error) {
+        console.error("Error during APDU communication:", error);
       }
-
-      const tech = tag.selectTech("ISO-DEP");
-      if (!tech) {
-        console.error("Failed to select ISO-DEP technology");
-        return;
-      }
-
-      console.log("Selected ISO-DEP technology, tech object:", tech);
-
-      // Send SELECT PPSE command
-      console.log("=== SELECT PPSE COMMAND ===");
-      console.log("Command hex string:", APDU_COMMANDS.SELECT_PPSE);
-      const selectPPSE = hexStringToUint8Array(APDU_COMMANDS.SELECT_PPSE);
-      console.log("Command bytes (Uint8Array):", selectPPSE);
-      console.log("Command bytes (hex):", uint8ArrayToHexString(selectPPSE));
-
-      const selectResponse = await tech.transceive(selectPPSE);
-      console.log("Response bytes (Uint8Array):", selectResponse);
-      console.log(
-        "Response bytes (hex):",
-        uint8ArrayToHexString(selectResponse),
-      );
-      console.log("Response length:", selectResponse.length, "bytes");
-
-      // Create transaction data
-      console.log("=== TRANSACTION DATA ===");
-      const transactionData = createTransactionData(10); // 10 cents
-      console.log(
-        "Transaction data:",
-        JSON.stringify(transactionData, null, 2),
-      );
-
-      // Send GENERATE AC command with transaction data
-      console.log("=== GENERATE AC COMMAND ===");
-      const generateAC = createGenerateACCommand(transactionData);
-      console.log("Command bytes (Uint8Array):", generateAC);
-      console.log("Command bytes (hex):", uint8ArrayToHexString(generateAC));
-      console.log("Command length:", generateAC.length, "bytes");
-
-      const generateResponse = await tech.transceive(generateAC);
-      console.log("Response bytes (Uint8Array):", generateResponse);
-      console.log(
-        "Response bytes (hex):",
-        uint8ArrayToHexString(generateResponse),
-      );
-      console.log("Response length:", generateResponse.length, "bytes");
-
-      // Create payment service data
-      const paymentData = createPaymentServiceData(transactionData);
-      console.log("=== PAYMENT SERVICE JSON ===");
-      console.log(
-        "Transaction JSON for payment service:",
-        JSON.stringify(paymentData, null, 2),
-      );
-
-      console.log("APDU communication completed successfully");
-    } catch (error) {
-      console.error("Error during APDU communication:", error);
-    }
-  }, []);
+    },
+    [amount, paymentPointer],
+  );
 
   const handleTagFound = useCallback(
     (event: any) => {
