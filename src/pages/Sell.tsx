@@ -23,11 +23,12 @@ export default function Sell(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log(e.key);
       if (e.repeat) return;
       if (e.key >= "0" && e.key <= "9") {
         onKey(e.key);
         e.preventDefault();
-      } else if (e.key === "." || e.key === ",") {
+      } else if (e.key === "." || e.key === "," || e.key === "*") {
         onKey(".");
         e.preventDefault();
       } else if (e.key === "Backspace") {
@@ -62,17 +63,12 @@ export default function Sell(_props: { path?: string }) {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <button
-          onClick={() => nav("/menu")}
-          className="text-sm text-white/70 hover:text-white"
-        >
-          ← Back
-        </button>
-        <div className="text-sm text-white/70">Sell</div>
+        <a onClick={() => nav("/menu")} className="text-lg">← Back</a>
+        <div className="text-lg">Sell</div>
         <div className="w-10" />
       </div>
-      <div className="rounded-xl bg-white/10 px-4 py-6 text-center">
-        <div className="text-4xl font-bold tabular-nums">
+      <div className="mt-4 rounded-xl bg-white px-4 py-6 text-center">
+        <div className="text-3xl font-bold tabular-nums">
           {formatCurrency(parseFloat(amount || "0"), currency)}
         </div>
       </div>

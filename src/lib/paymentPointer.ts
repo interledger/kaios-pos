@@ -23,9 +23,9 @@ export async function handlePaymentPointerEnter(
     return false;
   }
   try {
-    const data = await get(pp);
+    const data = { assetCode: "USD" }; //await get(pp);
     setPaymentPointer(pp);
-    setCurrency(data.assetCode);
+    setCurrency(data.assetCode || "USD");
     nav("/menu");
     return true;
   } catch (error) {

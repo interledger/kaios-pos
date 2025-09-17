@@ -12,7 +12,7 @@ interface HashHistory {
   readonly location: Location;
 }
 
-function getLocation(): Location {
+export function getLocation(): Location {
   const hash = window.location.hash.replace(/^#/, "") || "/";
   const [pathname, search = ""] = hash.split("?");
   return {

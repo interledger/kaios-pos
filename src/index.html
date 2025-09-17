@@ -2,10 +2,15 @@
 <html lang="en" class="w-full">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width" />
+    <meta id="theme-color" name="theme-color" content="rgb(255, 255, 255)" />
+
+    <meta name="defaultLanguage" content="ro-RO" />
+    <meta name="availableLanguages" content="ro-RO, en-US" />
     <title>Interledger POS</title>
+    <link rel="localization" href="/locales/kai-pos.{locale}.properties" />
   </head>
-  <body class="min-h-screen">
+  <body id="app" class="min-h-screen">
     <div id="root"></div>
     <script>
       window.addEventListener('error', function(event) {

@@ -94,6 +94,7 @@ module.exports = {
       patterns: [
         { from: "src/manifest.webapp.json", to: "manifest.webapp" },
         { from: "assets", to: "assets" },
+        { from: "src/locales", to: "locales" },
       ],
     }),
     new HtmlWebpackPlugin({

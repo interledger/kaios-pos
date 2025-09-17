@@ -19,7 +19,7 @@ export default function Setup(_props: { path?: string }) {
   }
   const initialPointer = useRef(paymentPointer);
 
-  const [paymentPointerInput, setPaymentPointerInput] = useState("");
+  const [paymentPointerInput, setPaymentPointerInput] = useState("https://ilp.link/adi");
 
   useEffect(() => {
     setError("");
@@ -49,12 +49,12 @@ export default function Setup(_props: { path?: string }) {
   }, []);
   return (
     <section className="space-y-6">
-      <h2 className="text-xl font-semibold">Merchant setup</h2>
-      <label className="block">
-        <span className="text-sm text-white/80" data-l10n-id="payment-pointer"></span>
+      <h2 data-l10n-id="wallet-setup" className="text-3xl text-center font-extrabold text-black mt-6"></h2>
+      <label className="flex flex-col border-green rounded-xl bg-white-10 py-4 px-4 focus:ring-2 focus:ring-emerald-400">
+        <span className="text-2xl mt-2" data-l10n-id="payment-pointer"></span>
         <input
           ref={inputRef}
-          className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
+          className="mt-2 border-none  py-3 outline-none "
           placeholder="e.g., $example.com/alice"
           value={paymentPointerInput}
           onKeyDown={async (e) => {

@@ -7,8 +7,9 @@ export default {
         kai: "270px",
       },
       colors: {
-        kaiBg: "#181c1f",
-        kaiAccent: "#00e676",
+        transparent: 'transparent',
+        kaiBg: "#00ba91",
+        kaiAccent: "#82c51b",
         kaiText: "#fff",
         kaiMuted: "#b0b0b0",
       },

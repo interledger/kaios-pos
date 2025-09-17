@@ -1,6 +1,6 @@
 
 import { createContext } from "preact";
-import { useContext, useReducer, useEffect } from "preact/hooks";
+import { useContext, useReducer, useEffect, type Dispatch } from "preact/hooks";
 
 export type Tx = {
   id: string;
@@ -95,7 +95,7 @@ function reducer(state: Store, action: Action): Store {
 }
 
 const StoreContext = createContext<
-  | [Store, React.Dispatch<Action>]
+  | [Store, Dispatch<Action>]
   | undefined
 >(undefined);
 

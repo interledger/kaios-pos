@@ -1,5 +1,6 @@
 import { h, render } from "preact";
-import "./index.css";
+import "kaios-gaia-l10n";
+import "./index.scss";
 import AppRouter from "@routes/router";
 import { AppStoreProvider } from "@state/AppStore";
 

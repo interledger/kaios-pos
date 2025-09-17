@@ -34,11 +34,11 @@ export default function EndOfDay(_props: { path?: string }) {
         >
           ← Back
         </button>
-        <div className="text-sm text-white/70">End of day report</div>
+        <div data-l10n-id="eod-report" className="text-sm text-white/70">End of day report</div>
         <div className="w-10" />
       </div>
       <label className="block">
-        <span className="text-sm text-white/80">Report date</span>
+        <span data-l10n-id="report-date" className="text-sm text-white/80">Report date</span>
         <input
           type="date"
           className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
@@ -48,35 +48,35 @@ export default function EndOfDay(_props: { path?: string }) {
       </label>
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl bg-white/10 p-4">
-          <div className="text-xs text-white/70">Number of transactions</div>
+          <div data-l10n-id="num-transactions" className="text-xs text-white/70"></div>
           <div className="mt-1 text-lg font-semibold">{String(count)}</div>
         </div>
         <div className="rounded-2xl bg-white/10 p-4">
-          <div className="text-xs text-white/70">Sum of all transactions</div>
+          <div data-l10n-id="sum-transactions" className="text-xs text-white/70"></div>
           <div className="mt-1 text-lg font-semibold">
             {formatCurrency(sum, currency)}
           </div>
         </div>
         <div className="rounded-2xl bg-white/10 p-4">
-          <div className="text-xs text-white/70">Sum of all fees</div>
+          <div data-l10n-id="fees-transactions" className="text-xs text-white/70"></div>
           <div className="mt-1 text-lg font-semibold">
             {formatCurrency(fees, currency)}
           </div>
         </div>
         <div className="rounded-2xl bg-white/10 p-4">
-          <div className="text-xs text-white/70">Net total (sum - fees)</div>
+          <div data-l10n-id="net-total" className="text-xs text-white/70"></div>
           <div className="mt-1 text-lg font-semibold">
             {formatCurrency(sum - fees, currency)}
           </div>
         </div>
         <div className="rounded-2xl bg-white/10 p-4">
-          <div className="text-xs text-white/70">First transaction</div>
+          <div data-l10n-id="first-transaction" className="text-xs text-white/70"></div>
           <div className="mt-1 text-lg font-semibold">
             {first ? (first.toLocaleString?.() as any) : "–"}
           </div>
         </div>
         <div className="rounded-2xl bg-white/10 p-4">
-          <div className="text-xs text-white/70">Last transaction</div>
+          <div data-l10n-id="last-transaction" className="text-xs text-white/70"></div>
           <div className="mt-1 text-lg font-semibold">
             {last ? (last.toLocaleString?.() as any) : "–"}
           </div>

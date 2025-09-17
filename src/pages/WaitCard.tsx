@@ -1,15 +1,10 @@
 // WaitCard.tsx
-import { useEffect, useRef, useCallback } from "preact/hooks";
+import { useEffect, useRef, useCallback, useState } from "preact/hooks";
 import { route } from "preact-router";
+import { playRingtone } from "@lib/commonHelper";
+import { useAppStore } from "@state/AppStore";
+import { formatCurrency } from "@lib/currency";
 
-declare global {
-  interface Navigator {
-    mozNfc?: {
-      ontagfound: ((e: any) => void) | null;
-      ontaglost: ((e: any) => void) | null;
-    };
-  }
-}
 
 type WaitCardProps = {
   decrement?: (tag: any) => void;
@@ -30,7 +25,8 @@ export default function WaitCard({
   className = "",
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
-
+  const { currency, amount, } = useAppStore();
+  const [readerState, setReaderState] = useState('lost');
   const handleTagFound = useCallback(
     (event: any) => {
       const { tag } = event;
@@ -114,12 +110,22 @@ export default function WaitCard({
     <div
       ref={panelRef}
       tabIndex={-1}
-      className={`rounded-2xl p-6 bg-white/5 ring-1 ring-white/10 ${className}`}
+      className={`${className}`}
     >
-      <h2 className="text-lg font-semibold">Hold card near the reader</h2>
-      <p className="mt-2 text-white/70">
-        Waiting for an NFC card… keep it in the field until confirmed.
-      </p>
+      <div className="flex items-center justify-between">
+        <a onClick={() => route("/menu")} className="text-lg">← Back</a>
+        <div className="text-lg">Sell</div>
+        <div className="w-10" />
+      </div>
+      <div className="flex flex-col mt-4 rounded-2xl py-8 bg-white ">
+        <h2 className="mt-4 mb-2 px-4 text-3xl text-center font-semibold">Hold card near the reader</h2>
+        <p className="text-lg my-1 text-center">
+          {formatCurrency(parseFloat(amount || "0"), currency)}
+        </p>
+        <div className="mt-4 mb-4 text-center">
+          <img src="/assets/icons/debit-card.png" className="mx-auto w-64 h-64" />
+        </div>
+      </div>
     </div>
   );
 }

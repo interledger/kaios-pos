@@ -6,25 +6,10 @@ export default function Menu(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer } = useAppStore();
   const items = [
-    { key: "sell", label: "Sell", path: "/sell", hint: "Accept a payment" },
-    {
-      key: "balance",
-      label: "Balance",
-      path: "/balance",
-      hint: "View recent transactions",
-    },
-    {
-      key: "eod",
-      label: "End of day report",
-      path: "/eod",
-      hint: "Daily totals & email",
-    },
-    {
-      key: "settings",
-      label: "Settings",
-      path: "/settings",
-      hint: "Configure device",
-    },
+    { key: "sell", path: "/sell" },
+    { key: "balance", path: "/balance" },
+    { key: "eod", path: "/eod" },
+    { key: "settings", path: "/settings" },
   ];
   const [focused, setFocused] = useState(0); // 0 = Sell
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -58,7 +43,7 @@ export default function Menu(_props: { path?: string }) {
 
   return (
     <section
-      className="flex flex-col gap-2 mt-2 w-full max-w-[270px] mx-auto px-1"
+      className="flex flex-col gap-2 mt-4 w-full max-w-270 mx-auto px-1"
       style={{ minWidth: 0 }}
     >
       {items.map((it, i) => (
@@ -69,14 +54,16 @@ export default function Menu(_props: { path?: string }) {
           }}
           tabIndex={i === focused ? 0 : -1}
           onClick={() => nav(it.path)}
-          className={`rounded-kai px-2 py-3 text-left shadow-inner transition-colors outline-none
-            ${i === focused ? "bg-kaiAccent text-kaiBg" : "bg-white/10 text-kaiText"}
-            text-base font-semibold focus:ring-2 focus:ring-kaiAccent`}
-          style={{ minWidth: 0 }}
+          className={`bg-none bg-white rounded mb-2 px-2 py-3 text-left border-none text-black font-semibold focus:bg-orange-700 ${i === focused ? "item-bg" : ""}`}
         >
-          <div className="flex flex-col">
-            <span>{it.label}</span>
-            <span className="text-xs text-kaiMuted">{it.hint}</span>
+          <div className="flex flex-row">
+            <div className="flex items-center mx-4">
+              <img src={`/assets/icons/${it.key}.png`} alt="" className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col">
+              <span data-l10n-id={`menu-${it.key}`}></span>
+              <span data-l10n-id={`menu-${it.key}-hint`} className="text-sm"></span>
+            </div>
           </div>
         </button>
       ))}
