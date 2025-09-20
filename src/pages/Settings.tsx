@@ -46,60 +46,25 @@ export default function Settings(_props: { path?: string }) {
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between">
-        <button
-          onClick={() => nav("/menu")}
-          className="text-sm text-white/70 hover:text-white"
-        >
-          ← Back
-        </button>
-        <div className="text-sm text-white/70">Settings</div>
-        <div className="w-10" />
+        <a onClick={() => nav("/menu")} className="text-lg">← <span data-l10n-id="back">Back</span></a>
+        <div className="text-lg">Settings</div>
+        <div className="w-15" />
+
       </div>
-      <label className="block">
-        <span className="text-sm text-white/80">Payment pointer</span>
-        <div className="mt-2">
-          <input
-            ref={inputRef}
-            tabIndex={focused === 0 ? 0 : -1}
-            className="w-full rounded-xl bg-white/10 px-2 py-2 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
-            placeholder="e.g., $example.com/alice"
-            value={paymentPointerInput}
-            onKeyDown={async (e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const value = (e.target as HTMLInputElement).value;
-                await handlePaymentPointerEnter(value, {
-                  setError,
-                  setPaymentPointer,
-                  setPaymentPointerInput,
-                  setCurrency,
-                  nav,
-                });
-              }
-            }}
-          />
-        </div>
-        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      <div
+        tabIndex={0 === focused ? 0 : -1}
+        className=" mt-4 p-4 rounded-xl  bg-white focus:ring-2 focus:ring-emerald-400"
+        onClick={() => nav("/payment-pointer")}
+      >
+        <label className="">
+          <span className="text-sm text-white/80">Payment pointer</span>
+          <div className="mt-2">
 
-      </label>
-      <label className="block">
-        <button
-          ref={deleteBtnRef}
-          tabIndex={focused === 1 ? 0 : -1}
-          type="button"
-          className="mt-4 w-full rounded-xl bg-red-600 px-3 py-2 text-white text-xs font-semibold hover:bg-red-700"
-          onClick={() => {
-            setPaymentPointer("");
-            setPaymentPointerInput("");
-            setError("");
-          }}
-        >
-          Delete payment pointer
-        </button>
-      </label>
-      <label className="block">
+          </div>
 
-      </label>
+        </label>
+      </div>
+
     </section>
   );
 }

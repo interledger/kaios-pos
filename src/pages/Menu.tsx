@@ -46,6 +46,11 @@ export default function Menu(_props: { path?: string }) {
       className="flex flex-col gap-2 mt-4 w-full max-w-270 mx-auto px-1"
       style={{ minWidth: 0 }}
     >
+      <div className="flex items-center justify-between">
+        <div className="w-10" />
+        <div data-l10n-id="menu" className="text-lg"></div>
+        <div className="w-10" />
+      </div>
       {items.map((it, i) => (
         <button
           key={it.key}

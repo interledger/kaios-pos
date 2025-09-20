@@ -16,6 +16,15 @@ export function formatCurrency(value: number, currency: string) {
     }).format(value || 0);
   } catch {
     const s = currencySymbol(currency);
-    return `${s}${(value || 0).toFixed(2)}`;
+    return `${s} ${(value || 0).toFixed(2)}`;
+  }
+}
+export function formatValue(value: number) {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency"
+    }).format(value || 0);
+  } catch {
+    return `${value ? '+':'-'}${(value || 0).toFixed(2)}`;
   }
 }

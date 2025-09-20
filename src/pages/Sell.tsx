@@ -63,8 +63,8 @@ export default function Sell(_props: { path?: string }) {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <a onClick={() => nav("/menu")} className="text-lg">← Back</a>
-        <div className="text-lg">Sell</div>
+        <a onClick={() => nav("/menu")} className="text-lg">← <span data-l10n-id="back"></span></a>
+        <div data-l10n-id="sell" className="text-lg"></div>
         <div className="w-10" />
       </div>
       <div className="mt-4 rounded-xl bg-white px-4 py-6 text-center">
