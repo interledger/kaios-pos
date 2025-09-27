@@ -6,10 +6,11 @@ export default function Menu(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer } = useAppStore();
   const items = [
-    { key: "sell", path: "/sell" },
-    { key: "balance", path: "/balance" },
-    { key: "eod", path: "/eod" },
-    { key: "settings", path: "/settings" },
+    { key: "sell", path: "/sell", icon: "sell.png" },
+    { key: "balance", path: "/balance", icon: "balance.png" },
+    { key: "eod", path: "/eod", icon: "eod.png" },
+    { key: "setup-qr", path: "/setup-qr", icon: "logo.png" },
+    { key: "settings", path: "/settings", icon: "settings.png" },
   ];
   const [focused, setFocused] = useState(0); // 0 = Sell
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -58,11 +59,18 @@ export default function Menu(_props: { path?: string }) {
         >
           <div className="flex flex-row">
             <div className="flex items-center mx-4">
-              <img src={`/assets/icons/${it.key}.png`} alt="" className="w-6 h-6" />
+              <img
+                src={`/assets/icons/${it.icon}`}
+                alt=""
+                className="w-6 h-6"
+              />
             </div>
             <div className="flex flex-col">
               <span data-l10n-id={`menu-${it.key}`}></span>
-              <span data-l10n-id={`menu-${it.key}-hint`} className="text-sm"></span>
+              <span
+                data-l10n-id={`menu-${it.key}-hint`}
+                className="text-sm"
+              ></span>
             </div>
           </div>
         </button>
