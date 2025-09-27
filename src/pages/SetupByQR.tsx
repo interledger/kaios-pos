@@ -167,16 +167,6 @@ export default function SetupByQR(_props: { path?: string }) {
 
       videoEl.srcObject = stream;
       videoEl.play();
-      //   if (
-      //     playResult &&
-      //     typeof (playResult as Promise<void>).then === "function"
-      //   ) {
-      //     (playResult as Promise<void>).catch((playErr) => {
-      //       console.warn("[SetupByQR] video play error", playErr);
-      //     });
-      //   } else {
-      //     console.log("[SetupByQR] video play invoked (non-promise)");
-      //   }
 
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
