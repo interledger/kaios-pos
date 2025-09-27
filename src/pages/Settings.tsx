@@ -15,6 +15,7 @@ export default function Settings(_props: { path?: string }) {
   const items = [
     { key: "pp", path: "/payment-pointer" },
     { key: "language", path: "/language" },
+    { key: "setup-qr", path: "/setup-qr" },
   ];
 
   useEffect(() => {
@@ -26,10 +27,10 @@ export default function Settings(_props: { path?: string }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
-        setFocused((f) => (f + 1) % 2);
+        setFocused((f) => (f + 1) % items.length);
         e.preventDefault();
       } else if (e.key === "ArrowUp") {
-        setFocused((f) => (f - 1 + 2) % 2);
+        setFocused((f) => (f - 1 + items.length) % items.length);
         e.preventDefault();
       } else if (e.key === "SoftLeft" || e.key === "Backspace") {
         nav("/menu");
@@ -79,6 +80,24 @@ export default function Settings(_props: { path?: string }) {
           </div>
           <div className="mt-2">
             <ChevronIcon fill={`${1 === focused ? "white" : "black"}`} />
+          </div>
+        </label>
+      </div>
+      <div
+        tabIndex={1 === focused ? 0 : -1}
+        className={`p-4 text-3xl bg-white ${2 === focused ? "active-item-bg" : ""}`}
+        onClick={() => nav("/setup-qr")}
+      >
+        <label className="flex flex-row">
+          <div className="flex mx-4 items-center">
+            <PpIcon fill={`${2 === focused ? "white" : "black"}`} />
+          </div>
+          <div className="flex flex-grow flex-col">
+            <span data-l10n-id="menu-setup-qr"></span>
+            <span data-l10n-id={`menu-setup-qr-hint`} className="text-xl"></span>
+          </div>
+          <div className="mt-2">
+            <ChevronIcon fill={`${2 === focused ? "white" : "black"}`} />
           </div>
         </label>
       </div>
