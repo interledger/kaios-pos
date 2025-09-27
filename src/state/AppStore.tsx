@@ -15,6 +15,7 @@ export type Store = {
   amount: string;
   tx: Tx[];
   error: string | null;
+  locale: string;
   _hasHydrated: boolean;
   signSecret: string;
 };
@@ -25,6 +26,7 @@ type Action =
   | { type: "setAmount"; value: string }
   | { type: "setTx"; value: Tx[] }
   | { type: "setError"; value: string | null }
+  | { type: "setLocale"; value: string }
   | { type: "setHasHydrated"; value: boolean }
   | { type: "setSignSecret"; value: string };
 
@@ -64,6 +66,76 @@ const sampleTx: Tx[] = [
     currency: "EUR",
     ts: new Date(Date.now() - 1000 * 60 * 30),
   },
+  {
+    id: "t6",
+    amount: 19.77,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t7",
+    amount: 19.88,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t8",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t8",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t9",
+    amount: 16.39,
+    fee: 0.06,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t10",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t11",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t12",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t13",
+    amount: 8.27,
+    fee: 0.03,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t14",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  }
 ];
 
 const initialState: Store = {
@@ -72,6 +144,7 @@ const initialState: Store = {
   amount: "0",
   tx: sampleTx,
   error: null,
+  locale: "en-US",
   _hasHydrated: false,
   signSecret: "",
 };
@@ -88,6 +161,8 @@ function reducer(state: Store, action: Action): Store {
       return { ...state, tx: action.value };
     case "setError":
       return { ...state, error: action.value };
+    case "setLocale":
+      return { ...state, locale: action.value };
     case "setHasHydrated":
       return { ...state, _hasHydrated: action.value };
     case "setSignSecret":
@@ -128,6 +203,7 @@ export function AppStoreProvider({
             : sampleTx,
         });
         dispatch({ type: "setError", value: parsed.error || null });
+        dispatch({ type: "setLocale", value: parsed.locale || "en-US" });
         dispatch({ type: "setSignSecret", value: parsed.signSecret || "" });
       }
       if (!raw) {
@@ -177,6 +253,7 @@ export function useAppStore() {
     setAmount: (v: string) => dispatch({ type: "setAmount", value: v }),
     setTx: (tx: Tx[]) => dispatch({ type: "setTx", value: tx }),
     setError: (v: string | null) => dispatch({ type: "setError", value: v }),
+    setLocale: (v: string) => dispatch({ type: "setLocale", value: v }),
     setHasHydrated: (v: boolean) =>
       dispatch({ type: "setHasHydrated", value: v }),
     setSignSecret: (v: string) => dispatch({ type: "setSignSecret", value: v }),

@@ -10,6 +10,8 @@ import WaitCard from "@pages/WaitCard";
 import Balance from "@pages/Balance";
 import EndOfDay from "@pages/EndOfDay";
 import Settings from "@pages/Settings";
+import PaymentPointer from "@pages/PaymentPointer";
+import Language from "@pages/Language";
 import SetupByQR from "@pages/SetupByQR";
 
 export default function AppRouter() {
@@ -25,6 +27,8 @@ export default function AppRouter() {
         <EndOfDay path="/eod" />
         <SetupByQR path="/setup-qr" />
         <Settings path="/settings" />
+        <PaymentPointer path="/payment-pointer" />
+        <Language path="/language" />
       </Router>
     </Layout>
   );

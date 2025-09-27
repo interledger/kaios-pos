@@ -1,7 +1,7 @@
 {
   "name": "Interledger POS",
   "version": "1.0.0",
-  "description": "Interledger POS App that works with the Interledger cards",
+  "description": "Interledger POS",
   "launch_path": "/index.html",
   "type": "certified",
   "developer": {
@@ -18,12 +18,12 @@
   "theme_color": "#6054EF",
   "locales": {
     "en-US": {
-      "name": "Interledger POS App",
+      "name": "Interledger POS",
       "subtitle": "Interledger POS App",
       "description": "POS app that works with the Interledger cards"
     },
     "ro-RO": {
-      "name": "Interledger POS App",
+      "name": "Interledger POS",
       "subtitle": "Aplicatia Interledger POS",
       "description": "POS app care merge cu cardurile Interledger"
     }

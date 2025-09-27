@@ -3,6 +3,7 @@
   --default-icon-size: 2.2rem;
   --title-bar-height: 2.8rem;
   --tab-bar-height: 3.6rem;
+  --menu-item-height: 5.8rem;
   --color-gs100: #000000;
   --color-gs90: #323232;
   --color-gs70: #6a6a6a;
@@ -11,6 +12,7 @@
   --color-gs10: #e6e6e6;
   --color-gs00: #ffffff;
   --color-app-bg: #D9D9D9;
+  --color-field-bg: #e6e6e6;
   --highlight-color: #00ae57;
 
   --color-alpha: #333333;
@@ -83,6 +85,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Titillium Web';
+  src: url('/assets/fonts/TitilliumWeb-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 html,
 body,
@@ -93,7 +103,7 @@ body,
   margin: 0;
   font-size: 10px;
   outline: none;
-  overflow: hidden;
+
   font-family: 'Titillium Web', Arial, sans-serif;
   background-color: var(--color-app-bg);
   color: #000;
@@ -103,6 +113,21 @@ button {
   font-family: 'Titillium Web', Arial, sans-serif;
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+input[type="date"]::-ms-clear {
+  display: none;
+}
+
+input[type="date"]::-ms-expand {
+  display: none;
+}
+
+input[type="date"]::-moz-focus-inner {
+  border: 0;
+}
 
 // --- Begin Tailwind to SCSS conversion ---
 
@@ -122,8 +147,48 @@ button {
   border-radius: 0.75rem;
 }
 
+.menu-height {
+  min-height: var(--menu-item-height);
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.b {
+  bottom: 0;
+}
+
+.l {
+  left: 0;
+}
+
+.r {
+  right: 0;
+}
+
+.t {
+  top: 0;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.bg-transparent {
+  background: transparent;
+}
+
 .bg-white-10 {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.bg-white-90 {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .bg-white-5 {
@@ -138,8 +203,16 @@ button {
   background: #10b981;
 }
 
+.bg-green-500 {
+  background: #007E50;
+}
+
 .bg-emerald-700 {
   background: #047857;
+}
+
+.bg-red-200 {
+  background: #fecaca;
 }
 
 .bg-red-600 {
@@ -220,8 +293,12 @@ button {
   /* 40px */
 }
 
+.font-normal {
+  font-weight: 400;
+}
+
 .font-bold {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .font-semibold {
@@ -296,6 +373,10 @@ button {
   padding: 1.5rem;
 }
 
+.p-0 {
+  padding: 0;
+}
+
 .px-1 {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
@@ -337,6 +418,10 @@ button {
 
 .gap-3 {
   gap: 0.75rem;
+}
+
+.gap-4 {
+  gap: 1rem;
 }
 
 .gap-5 {
@@ -391,12 +476,20 @@ button {
   flex-direction: row;
 }
 
+.flex-grow {
+  flex-grow: 1;
+}
+
 .items-center {
   align-items: center;
 }
 
 .justify-between {
   justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
 }
 
 .text-center {
@@ -415,16 +508,57 @@ button {
   border: 1px solid black;
 }
 
+.border-white {
+  border: 1px solid white;
+}
+
 .border-green {
   border: 1px solid green;
+}
+
+.border-red {
+  border: 1px solid red;
+}
+
+.border-red-600 {
+  border: 1px solid #dc2626;
 }
 
 .rounded-2xl {
   border-radius: 1rem;
 }
 
+.rounded-3xl {
+  border-radius: 1.5rem;
+}
+
+.rounded-4xl {
+  border-radius: 2rem;
+}
+
+
 .max-w-md {
   max-width: 28rem;
+}
+
+.text-green-50 {
+  color: #D6FFF0;
+}
+
+.text-green-500 {
+  color: #007E50;
+}
+
+.w-45 {
+  width: 11.25rem;
+}
+
+.w-30 {
+  width: 7.5rem;
+}
+
+.w-15 {
+  width: 3.75rem;
 }
 
 .w-10 {
@@ -487,6 +621,14 @@ button {
   height: 90vh;
 }
 
+.h-64 {
+  height: 64px;
+}
+
+.h-96 {
+  height: 96px;
+}
+
 .my-2 {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -525,10 +667,6 @@ button {
   display: block;
 }
 
-.w-full {
-  width: 100%;
-}
-
 .rounded {
   border-radius: 0.25rem;
 }
@@ -543,6 +681,10 @@ button {
 
 .mt-4 {
   margin-top: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
 }
 
 .mt-6 {
@@ -580,9 +722,10 @@ button {
   opacity: 0.8;
 }
 
-
-// --- End Tailwind to SCSS conversion ---
-
+.webkit-fill {
+  width: 100%;
+  width: -webkit-fill-available;
+}
 
 .color-white {
   color: var(--color-white);
@@ -592,8 +735,13 @@ button {
   background-color: var(--color-white);
 }
 
-.item-bg {
+.active-item-bg {
   background-color: var(--highlight-color);
+  color: var(--color-white);
+}
+
+.bg-field {
+  background-color: var(--color-field-bg);
 }
 
 :focus {

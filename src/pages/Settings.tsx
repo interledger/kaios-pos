@@ -2,18 +2,21 @@ import { h } from "preact";
 import { route } from "preact-router";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useAppStore } from "@state/AppStore";
-import { handlePaymentPointerEnter } from "@lib/paymentPointer";
+import { Footer } from "@components/Footer";
+import { Header } from "@components/Header";
+import { PpIcon } from "@components/icons/PpIcon";
+import { ChevronIcon } from "@components/icons/ChevronIcon";
+
 export default function Settings(_props: { path?: string }) {
   const nav = route;
-  const { error, setError, setCurrency, paymentPointer, setPaymentPointer } =
-    useAppStore();
-  const [paymentPointerInput, setPaymentPointerInput] =
-    useState(paymentPointer);
+  const { paymentPointer } = useAppStore();
   const [focused, setFocused] = useState(0); // 0 = input, 1 = delete button
-  const inputRef = useRef<HTMLInputElement>(null);
-  const deleteBtnRef = useRef<HTMLButtonElement>(null);
 
-  // handleEnterPress is now handled by handlePaymentPointerEnter helper
+  const items = [
+    { key: "pp", path: "/payment-pointer" },
+    { key: "language", path: "/language" },
+    { key: "setup-qr", path: "/setup-qr" },
+  ];
 
   useEffect(() => {
     if (paymentPointer.length == 0) {
@@ -23,83 +26,82 @@ export default function Settings(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const backKeys = ["SoftRight", "EndCall"];
-      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-        setFocused((f) => (f + 1) % 2);
+      if (e.key === "ArrowDown") {
+        setFocused((f) => (f + 1) % items.length);
         e.preventDefault();
-      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-        setFocused((f) => (f - 1 + 2) % 2);
+      } else if (e.key === "ArrowUp") {
+        setFocused((f) => (f - 1 + items.length) % items.length);
         e.preventDefault();
-      } else if (backKeys.indexOf(e.key) !== -1) {
+      } else if (e.key === "SoftLeft" || e.key === "Backspace") {
         nav("/menu");
+        e.preventDefault();
+      } else if (e.key === "Enter" || e.key === " ") {
+        nav(items[focused].path);
         e.preventDefault();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nav]);
+  }, [nav, focused]);
 
-  useEffect(() => {
-    if (focused === 0) inputRef.current?.focus();
-    else if (focused === 1) deleteBtnRef.current?.focus();
-  }, [focused]);
   return (
     <section className="space-y-2">
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => nav("/menu")}
-          className="text-sm text-white/70 hover:text-white"
-        >
-          ← Back
-        </button>
-        <div className="text-sm text-white/70">Settings</div>
-        <div className="w-10" />
+      <Header />
+      <div
+        tabIndex={0 === focused ? 0 : -1}
+        className={` mt-4 p-4 text-3xl bg-white ${0 === focused ? "active-item-bg" : ""}`}
+        onClick={() => nav("/payment-pointer")}
+      >
+        <label className="flex flex-row">
+          <div className="flex mx-4 items-center">
+            <PpIcon fill={`${0 === focused ? "white" : "black"}`} />
+          </div>
+          <div className="flex flex-grow flex-col">
+            <span data-l10n-id="menu-payment-pointer"></span>
+            <span data-l10n-id={`menu-payment-pointer-hint`} className="text-xl"></span>
+          </div>
+          <div className="mt-2">
+            <ChevronIcon fill={`${0 === focused ? "white" : "black"}`} />
+          </div>
+        </label>
       </div>
-      <label className="block">
-        <span className="text-sm text-white/80">Payment pointer</span>
-        <div className="mt-2">
-          <input
-            ref={inputRef}
-            tabIndex={focused === 0 ? 0 : -1}
-            className="w-full rounded-xl bg-white/10 px-2 py-2 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
-            placeholder="e.g., $example.com/alice"
-            value={paymentPointerInput}
-            onKeyDown={async (e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const value = (e.target as HTMLInputElement).value;
-                await handlePaymentPointerEnter(value, {
-                  setError,
-                  setPaymentPointer,
-                  setPaymentPointerInput,
-                  setCurrency,
-                  nav,
-                });
-              }
-            }}
-          />
-        </div>
-        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
-
-      </label>
-      <label className="block">
-        <button
-          ref={deleteBtnRef}
-          tabIndex={focused === 1 ? 0 : -1}
-          type="button"
-          className="mt-4 w-full rounded-xl bg-red-600 px-3 py-2 text-white text-xs font-semibold hover:bg-red-700"
-          onClick={() => {
-            setPaymentPointer("");
-            setPaymentPointerInput("");
-            setError("");
-          }}
-        >
-          Delete payment pointer
-        </button>
-      </label>
-      <label className="block">
-
-      </label>
+      <div
+        tabIndex={1 === focused ? 0 : -1}
+        className={`p-4 text-3xl bg-white ${1 === focused ? "active-item-bg" : ""}`}
+        onClick={() => nav("/language")}
+      >
+        <label className="flex flex-row">
+          <div className="flex mx-4 items-center">
+            <PpIcon fill={`${1 === focused ? "white" : "black"}`} />
+          </div>
+          <div className="flex flex-grow flex-col">
+            <span data-l10n-id="menu-language"></span>
+            <span data-l10n-id={`menu-language-hint`} className="text-xl"></span>
+          </div>
+          <div className="mt-2">
+            <ChevronIcon fill={`${1 === focused ? "white" : "black"}`} />
+          </div>
+        </label>
+      </div>
+      <div
+        tabIndex={1 === focused ? 0 : -1}
+        className={`p-4 text-3xl bg-white ${2 === focused ? "active-item-bg" : ""}`}
+        onClick={() => nav("/setup-qr")}
+      >
+        <label className="flex flex-row">
+          <div className="flex mx-4 items-center">
+            <PpIcon fill={`${2 === focused ? "white" : "black"}`} />
+          </div>
+          <div className="flex flex-grow flex-col">
+            <span data-l10n-id="menu-setup-qr"></span>
+            <span data-l10n-id={`menu-setup-qr-hint`} className="text-xl"></span>
+          </div>
+          <div className="mt-2">
+            <ChevronIcon fill={`${2 === focused ? "white" : "black"}`} />
+          </div>
+        </label>
+      </div>
+      <Footer optionBtn={false} />
     </section>
   );
 }

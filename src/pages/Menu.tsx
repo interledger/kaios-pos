@@ -2,6 +2,13 @@ import { useAppStore } from "@state/AppStore";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { route } from "preact-router";
 
+import { Footer } from "@components/Footer";
+import { Header } from "@components/Header";
+import { SellIcon } from "@components/icons/SellIcon";
+import { BalanceIcon } from "@components/icons/BalanceIcon";
+import { EodIcon } from "@components/icons/EodIcon";
+import { ChevronIcon } from "@components/icons/ChevronIcon";
+
 export default function Menu(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer } = useAppStore();
@@ -9,8 +16,6 @@ export default function Menu(_props: { path?: string }) {
     { key: "sell", path: "/sell", icon: "sell.png" },
     { key: "balance", path: "/balance", icon: "balance.png" },
     { key: "eod", path: "/eod", icon: "eod.png" },
-    { key: "setup-qr", path: "/setup-qr", icon: "logo.png" },
-    { key: "settings", path: "/settings", icon: "settings.png" },
   ];
   const [focused, setFocused] = useState(0); // 0 = Sell
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -36,6 +41,9 @@ export default function Menu(_props: { path?: string }) {
       } else if (e.key === "Enter" || e.key === " ") {
         nav(items[focused].path);
         e.preventDefault();
+      } else if (e.key === "SoftRight") {
+        route("/settings");
+        e.preventDefault();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -43,10 +51,8 @@ export default function Menu(_props: { path?: string }) {
   }, [focused, nav]);
 
   return (
-    <section
-      className="flex flex-col gap-2 mt-4 w-full max-w-270 mx-auto px-1"
-      style={{ minWidth: 0 }}
-    >
+    <section className="flex flex-col w-full">
+      {/* <Header /> */}
       {items.map((it, i) => (
         <button
           key={it.key}
@@ -55,26 +61,29 @@ export default function Menu(_props: { path?: string }) {
           }}
           tabIndex={i === focused ? 0 : -1}
           onClick={() => nav(it.path)}
-          className={`bg-none bg-white rounded mb-2 px-2 py-3 text-left border-none text-black font-semibold focus:bg-orange-700 ${i === focused ? "item-bg" : ""}`}
+          className={`bg-none bg-white py-3 text-left text-3xl menu-height border-none text-black font-semibold ${i === focused ? "active-item-bg" : ""}`}
         >
           <div className="flex flex-row">
-            <div className="flex items-center mx-4">
-              <img
-                src={`/assets/icons/${it.icon}`}
-                alt=""
-                className="w-6 h-6"
-              />
+            <div className="flex mx-4 items-center">
+              {it.key === 'sell' && <SellIcon fill={`${i === focused ? "white" : "#10b981"}`} />}
+              {it.key === 'balance' && <BalanceIcon fill={`${i === focused ? "white" : "#815181"}`} />}
+              {it.key === 'eod' && <EodIcon fill={`${i === focused ? "white" : "#FF7A7F"}`} />}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-grow flex-col">
               <span data-l10n-id={`menu-${it.key}`}></span>
-              <span
-                data-l10n-id={`menu-${it.key}-hint`}
-                className="text-sm"
-              ></span>
+              <span data-l10n-id={`menu-${it.key}-hint`} className="text-xl"></span>
+            </div>
+            <div className="flex-none items-center">
+              <ChevronIcon fill={`${i === focused ? "white" : "black"}`} />
             </div>
           </div>
         </button>
-      ))}
-    </section>
+      ))
+      }
+      <div className="w-15 h-15" />
+      <Footer
+        backBtn={false}
+      />
+    </section >
   );
 }
