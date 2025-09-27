@@ -15,6 +15,7 @@ export type Store = {
   amount: string;
   tx: Tx[];
   error: string | null;
+  locale: string;
   _hasHydrated: boolean;
 };
 
@@ -24,6 +25,7 @@ type Action =
   | { type: "setAmount"; value: string }
   | { type: "setTx"; value: Tx[] }
   | { type: "setError"; value: string | null }
+  | { type: "setLocale"; value: string }
   | { type: "setHasHydrated"; value: boolean };
 
 const sampleTx: Tx[] = [
@@ -140,6 +142,7 @@ const initialState: Store = {
   amount: "0",
   tx: sampleTx,
   error: null,
+  locale: "en-US",
   _hasHydrated: false,
 };
 
@@ -155,6 +158,8 @@ function reducer(state: Store, action: Action): Store {
       return { ...state, tx: action.value };
     case "setError":
       return { ...state, error: action.value };
+    case "setLocale":
+      return { ...state, locale: action.value };
     case "setHasHydrated":
       return { ...state, _hasHydrated: action.value };
     default:
@@ -193,6 +198,7 @@ export function AppStoreProvider({
             : sampleTx,
         });
         dispatch({ type: "setError", value: parsed.error || null });
+        dispatch({ type: "setLocale", value: parsed.locale || "en-US" });
       }
     } catch (e) {
       // ignore
@@ -236,6 +242,7 @@ export function useAppStore() {
     setAmount: (v: string) => dispatch({ type: "setAmount", value: v }),
     setTx: (tx: Tx[]) => dispatch({ type: "setTx", value: tx }),
     setError: (v: string | null) => dispatch({ type: "setError", value: v }),
+    setLocale: (v: string) => dispatch({ type: "setLocale", value: v }),
     setHasHydrated: (v: boolean) =>
       dispatch({ type: "setHasHydrated", value: v }),
   };

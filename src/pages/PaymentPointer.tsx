@@ -5,7 +5,6 @@ import { useAppStore } from "@state/AppStore";
 import { handlePaymentPointerEnter } from "@lib/paymentPointer";
 import { Footer } from "@components/Footer";
 import { Header } from "@components/Header";
-import { currencySymbol } from "@lib/currency";
 
 export default function PaymentPointer(_props: { path?: string }) {
   const nav = route;

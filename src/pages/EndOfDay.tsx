@@ -28,8 +28,6 @@ export default function EndOfDay(_props: { path?: string }) {
         route("/settings");
         e.preventDefault();
       } else if (e.key === "Enter" || e.key === " ") {
-        console.log(focused);
-        setFocused((f) => (f + 1) % 2);
         const input = document.getElementById("date-input");
         input?.focus();
         (input as HTMLInputElement)?.showPicker?.();

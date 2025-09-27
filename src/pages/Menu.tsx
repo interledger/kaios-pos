@@ -7,6 +7,7 @@ import { Header } from "@components/Header";
 import { SellIcon } from "@components/icons/SellIcon";
 import { BalanceIcon } from "@components/icons/BalanceIcon";
 import { EodIcon } from "@components/icons/EodIcon";
+import { ChevronIcon } from "@components/icons/ChevronIcon";
 
 export default function Menu(_props: { path?: string }) {
   const nav = route;
@@ -15,6 +16,7 @@ export default function Menu(_props: { path?: string }) {
     { key: "sell", path: "/sell" },
     { key: "balance", path: "/balance" },
     { key: "eod", path: "/eod" },
+    { key: "doamne", path: "/settings" },
   ];
   const [focused, setFocused] = useState(0); // 0 = Sell
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -73,16 +75,7 @@ export default function Menu(_props: { path?: string }) {
               <span data-l10n-id={`menu-${it.key}-hint`} className="text-xl"></span>
             </div>
             <div className="flex-none items-center">
-              <svg width="24" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g clip-path="url(#clip0_488_5622)">
-                  <path d="M8 7.41L12.58 12L8 16.59L9.41 18L15.41 12L9.41 6L8 7.41Z" fill={`${i === focused ? "white" : "#000000"}`} />
-                </g>
-                <defs>
-                  <clipPath id="clip0_488_5622">
-                    <rect width="24" height="24" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
+              <ChevronIcon fill={`${i === focused ? "white" : "black"}`} />
             </div>
           </div>
         </button>
