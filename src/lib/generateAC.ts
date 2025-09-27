@@ -157,35 +157,6 @@ export function createGenerateACCommand(
     transactionData.senderWalletAddress,
   );
 
-  console.log("=== PAYLOAD BREAKDOWN ===");
-  console.log(
-    `ATC: ${transactionData.applicationTransactionCounter} -> ${uint8ArrayToHexString(atcData)}`,
-  );
-  console.log(
-    `Amount: ${transactionData.amount} cents -> ${uint8ArrayToHexString(amountData)}`,
-  );
-  console.log(
-    `Currency: ${transactionData.currencyCode} -> ${uint8ArrayToHexString(currencyData)}`,
-  );
-  console.log(
-    `Exponent: ${transactionData.transactionCurrencyExponent} -> ${uint8ArrayToHexString(exponentData)}`,
-  );
-  console.log(
-    `Date: ${transactionData.date} (YYMMDD) -> [${Array.from(dateData).join(", ")}]`,
-  );
-  console.log(
-    `Time: ${transactionData.time} (HHMMSS) -> [${Array.from(timeData).join(", ")}]`,
-  );
-  console.log(
-    `Unpredictable: ${transactionData.unpredictableNumber} -> ${uint8ArrayToHexString(unpredictableData)}`,
-  );
-  console.log(
-    `Receiver: ${transactionData.receiverWalletAddress} -> ${uint8ArrayToHexString(recipientData)}`,
-  );
-  console.log(
-    `Sender: ${transactionData.senderWalletAddress} -> ${uint8ArrayToHexString(senderData)}`,
-  );
-
   // Combine all raw data fields in order (concatenated, no TLV encoding)
   const rawDataFields = [
     atcData, // 2 bytes - ATC
@@ -212,10 +183,6 @@ export function createGenerateACCommand(
     rawData.set(field, offset);
     offset += field.length;
   }
-
-  console.log("=== COMPLETE PAYLOAD ===");
-  console.log(`Total length: ${totalLength} bytes`);
-  console.log(`Hex: ${uint8ArrayToHexString(rawData)}`);
 
   const commandHeader = hexStringToUint8Array(APDU_COMMANDS.GENERATE_AC);
   const lc = new Uint8Array([rawData.length]); // Length of data

@@ -17,6 +17,7 @@ export type Store = {
   error: string | null;
   locale: string;
   _hasHydrated: boolean;
+  signSecret: string;
 };
 
 type Action =
@@ -26,7 +27,8 @@ type Action =
   | { type: "setTx"; value: Tx[] }
   | { type: "setError"; value: string | null }
   | { type: "setLocale"; value: string }
-  | { type: "setHasHydrated"; value: boolean };
+  | { type: "setHasHydrated"; value: boolean }
+  | { type: "setSignSecret"; value: string };
 
 const sampleTx: Tx[] = [
   {
@@ -144,6 +146,7 @@ const initialState: Store = {
   error: null,
   locale: "en-US",
   _hasHydrated: false,
+  signSecret: "",
 };
 
 function reducer(state: Store, action: Action): Store {
@@ -162,15 +165,16 @@ function reducer(state: Store, action: Action): Store {
       return { ...state, locale: action.value };
     case "setHasHydrated":
       return { ...state, _hasHydrated: action.value };
+    case "setSignSecret":
+      return { ...state, signSecret: action.value };
     default:
       return state;
   }
 }
 
-const StoreContext = createContext<
-  | [Store, Dispatch<Action>]
-  | undefined
->(undefined);
+const StoreContext = createContext<[Store, Dispatch<Action>] | undefined>(
+  undefined,
+);
 
 export function AppStoreProvider({
   children,
@@ -185,6 +189,7 @@ export function AppStoreProvider({
       const raw = localStorage.getItem("ilfpos");
       if (raw) {
         const parsed = JSON.parse(raw);
+        console.log("[AppStore] Parsed persisted state", parsed);
         dispatch({
           type: "setPaymentPointer",
           value: parsed.paymentPointer || "https://ilp.dev/009" || "",
@@ -199,9 +204,14 @@ export function AppStoreProvider({
         });
         dispatch({ type: "setError", value: parsed.error || null });
         dispatch({ type: "setLocale", value: parsed.locale || "en-US" });
+        dispatch({ type: "setSignSecret", value: parsed.signSecret || "" });
+      }
+      if (!raw) {
+        console.log("[AppStore] No persisted state found in localStorage");
       }
     } catch (e) {
       // ignore
+      console.error("[AppStore] Failed to hydrate persisted state", e);
     }
     dispatch({ type: "setHasHydrated", value: true });
   }, []);
@@ -217,6 +227,7 @@ export function AppStoreProvider({
           ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts,
         })),
       };
+      console.log("[AppStore] Persisting state", toSave);
       localStorage.setItem("ilfpos", JSON.stringify(toSave));
     }
   }, [state]);
@@ -245,6 +256,7 @@ export function useAppStore() {
     setLocale: (v: string) => dispatch({ type: "setLocale", value: v }),
     setHasHydrated: (v: boolean) =>
       dispatch({ type: "setHasHydrated", value: v }),
+    setSignSecret: (v: string) => dispatch({ type: "setSignSecret", value: v }),
   };
 }
 

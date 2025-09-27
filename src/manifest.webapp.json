@@ -32,7 +32,10 @@
   "orientation": "default",
   "messages": [{ "nfc-hci-event-transaction": "/index.html" }],
   "permissions": {
-    "camera": {},
+    "camera": {
+      "description": "Required for accessing cameras on the device."
+    },
+    "video-capture": {},
     "permissions": {},
     "settings": { "access": "readwrite" },
     "nfc": {},
@@ -41,6 +44,5 @@
     "nfc-manager": {},
     "nfc-hci-events": {},
     "secureelement-manage": {}
-  },
-   "activities": {}
+  }
 }

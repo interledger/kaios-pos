@@ -9,7 +9,10 @@ import {
   hexStringToUint8Array,
   extractRawDataFromAPDU,
 } from "@lib/generateAC";
-import { createPaymentServiceData } from "@lib/paymentService";
+import {
+  createPaymentServiceData,
+  sendPaymentToRafiki,
+} from "@lib/paymentService";
 import { useAppStore } from "@state/AppStore";
 import { playRingtone } from "@lib/commonHelper";
 import { formatCurrency } from "@lib/currency";
@@ -47,7 +50,7 @@ export default function WaitCard({
   className = "",
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const { currency, paymentPointer, amount } = useAppStore();
+  const { currency, paymentPointer, amount, signSecret } = useAppStore();
 
   const [transactionStatus, setTransactionStatus] = useState(0);
 
@@ -111,14 +114,28 @@ export default function WaitCard({
         console.log("=== Rafiki payment JSON ===");
         console.log(JSON.stringify(paymentData, null, 2));
 
+        // Send payment to Rafiki POS service
+        const rafikiResult = await sendPaymentToRafiki(paymentData, signSecret);
+
+        if (rafikiResult.success) {
+          console.log("Payment sent to Rafiki successfully!");
+          // Play success sound
+          playRingtone?.();
+        } else {
+          console.error(
+            "Failed to send payment to Rafiki:",
+            rafikiResult.error,
+          );
+        }
+
         console.log("APDU communication completed successfully");
       } catch (error) {
         console.error("Error during APDU communication:", error);
       }
     },
-    [amount, paymentPointer],
+    [amount, paymentPointer, signSecret],
   );
-  const [readerState, setReaderState] = useState('lost');
+  const [readerState, setReaderState] = useState("lost");
   const handleTagFound = useCallback(
     (event: any) => {
       console.log("event", event);

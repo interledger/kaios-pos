@@ -13,10 +13,11 @@ export default function Menu(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer } = useAppStore();
   const items = [
-    { key: "sell", path: "/sell" },
-    { key: "balance", path: "/balance" },
-    { key: "eod", path: "/eod" },
-    { key: "doamne", path: "/settings" },
+    { key: "sell", path: "/sell", icon: "sell.png" },
+    { key: "balance", path: "/balance", icon: "balance.png" },
+    { key: "eod", path: "/eod", icon: "eod.png" },
+    { key: "setup-qr", path: "/setup-qr", icon: "logo.png" },
+    { key: "doamne", path: "/settings", icon: "settings.png" },
   ];
   const [focused, setFocused] = useState(0); // 0 = Sell
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
