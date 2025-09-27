@@ -9,11 +9,13 @@ import {
   hexStringToUint8Array,
   extractRawDataFromAPDU,
 } from "@lib/generateAC";
-import { createPaymentServiceData } from "@lib/paymentService";
+import {
+  createPaymentServiceData,
+  sendPaymentToRafiki,
+} from "@lib/paymentService";
 import { useAppStore } from "@state/AppStore";
 import { playRingtone } from "@lib/commonHelper";
 import { formatCurrency } from "@lib/currency";
-
 
 interface MozNFCTag {
   id: Uint8Array;
@@ -45,7 +47,7 @@ export default function WaitCard({
   className = "",
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const { currency, paymentPointer, amount } = useAppStore();
+  const { currency, paymentPointer, amount, signSecret } = useAppStore();
 
   const sendAPDUCommands = useCallback(
     async (tag: MozNFCTag) => {
@@ -100,14 +102,28 @@ export default function WaitCard({
         console.log("=== Rafiki payment JSON ===");
         console.log(JSON.stringify(paymentData, null, 2));
 
+        // Send payment to Rafiki POS service
+        const rafikiResult = await sendPaymentToRafiki(paymentData, signSecret);
+
+        if (rafikiResult.success) {
+          console.log("Payment sent to Rafiki successfully!");
+          // Play success sound
+          playRingtone?.();
+        } else {
+          console.error(
+            "Failed to send payment to Rafiki:",
+            rafikiResult.error,
+          );
+        }
+
         console.log("APDU communication completed successfully");
       } catch (error) {
         console.error("Error during APDU communication:", error);
       }
     },
-    [amount, paymentPointer],
+    [amount, paymentPointer, signSecret],
   );
-  const [readerState, setReaderState] = useState('lost');
+  const [readerState, setReaderState] = useState("lost");
   const handleTagFound = useCallback(
     (event: any) => {
       console.log("event", event);
@@ -132,7 +148,7 @@ export default function WaitCard({
         if (typeof event.preventDefault === "function") {
           try {
             event.preventDefault();
-          } catch { }
+          } catch {}
         }
 
         // Send APDU commands
@@ -198,23 +214,26 @@ export default function WaitCard({
   }, []);
 
   return (
-    <div
-      ref={panelRef}
-      tabIndex={-1}
-      className={`${className}`}
-    >
+    <div ref={panelRef} tabIndex={-1} className={`${className}`}>
       <div className="flex items-center justify-between">
-        <a onClick={() => route("/menu")} className="text-lg">← Back</a>
+        <a onClick={() => route("/menu")} className="text-lg">
+          ← Back
+        </a>
         <div className="text-lg">Sell</div>
         <div className="w-10" />
       </div>
       <div className="flex flex-col mt-4 rounded-2xl py-8 bg-white ">
-        <h2 className="mt-4 mb-2 px-4 text-3xl text-center font-semibold">Hold card near the reader</h2>
+        <h2 className="mt-4 mb-2 px-4 text-3xl text-center font-semibold">
+          Hold card near the reader
+        </h2>
         <p className="text-lg my-1 text-center">
           {formatCurrency(parseFloat(amount || "0"), currency)}
         </p>
         <div className="mt-4 mb-4 text-center">
-          <img src="/assets/icons/debit-card.png" className="mx-auto w-64 h-64" />
+          <img
+            src="/assets/icons/debit-card.png"
+            className="mx-auto w-64 h-64"
+          />
         </div>
       </div>
     </div>
