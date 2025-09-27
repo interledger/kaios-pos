@@ -1,10 +1,8 @@
 import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
-import { Footer } from "@components/Footer";
-import { Header } from "@components/Header";
 import { formatCurrency } from "@lib/currency";
 import { useAppStore } from "@state/AppStore";
-export default function Sell(_props: { path?: string }) {
+export default function SellARQC(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer, currency, amount, setAmount } = useAppStore();
   const onKey = (key: string) => {
@@ -41,15 +39,15 @@ export default function Sell(_props: { path?: string }) {
           onKey("⌫");
         }
         e.preventDefault();
-      } else if (e.key === "SoftLeft") {
-        route("/menu");
+      } else if (e.key === "ArrowLeft") {
+        nav("/menu");
         e.preventDefault();
       } else if (e.key.toLowerCase() === "c") {
         onKey("C");
         e.preventDefault();
       } else if (e.key === "Enter") {
         if (parseFloat(amount || "0") > 0) {
-          nav("/wait-card");
+          nav("/wait-card-ARQC");
         }
         e.preventDefault();
       }
@@ -64,13 +62,16 @@ export default function Sell(_props: { path?: string }) {
   }, []);
   return (
     <section className="space-y-4">
-      <Header />
+      <div className="flex items-center justify-between">
+        <a onClick={() => nav("/menu")} className="text-lg">← <span data-l10n-id="back"></span></a>
+        <div data-l10n-id="sell" className="text-lg"></div>
+        <div className="w-10" />
+      </div>
       <div className="mt-4 rounded-xl bg-white px-4 py-6 text-center">
         <div className="text-3xl font-bold tabular-nums">
           {formatCurrency(parseFloat(amount || "0"), currency)}
         </div>
       </div>
-      <Footer optionBtn={false} />
     </section>
   );
 }

@@ -62,6 +62,76 @@ const sampleTx: Tx[] = [
     currency: "EUR",
     ts: new Date(Date.now() - 1000 * 60 * 30),
   },
+  {
+    id: "t6",
+    amount: 19.77,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t7",
+    amount: 19.88,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t8",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t8",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t9",
+    amount: 16.39,
+    fee: 0.06,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t10",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t11",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t12",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t13",
+    amount: 8.27,
+    fee: 0.03,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t14",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  }
 ];
 
 const initialState: Store = {

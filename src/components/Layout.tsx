@@ -12,12 +12,8 @@ export default function Layout({ children }: { children?: preact.ComponentChildr
   return (
     <div className="min-h-screen w-full">
       {/* <Header /> */}
-      <main className="mx-auto max-w-md p-4">{children}</main>
-      {/* <footer class="softkey">
-        <div id="softkey-left">Back</div>
-        <div id="softkey-center">SELECT</div>
-        <div id="softkey-right">Options</div>
-      </footer> */}
+      <main className="mx-auto">{children}</main>
+
     </div>
   );
 }

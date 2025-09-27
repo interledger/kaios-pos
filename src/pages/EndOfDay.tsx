@@ -3,6 +3,9 @@ import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
 import { formatCurrency, currencySymbol, formatValue } from "@lib/currency";
 import { computeDailyReport } from "@services/reports";
+import { Header } from "@components/Header";
+import { Footer } from "@components/Footer";
+
 export default function EndOfDay(_props: { path?: string }) {
   const nav = route;
   const { currency, tx } = useAppStore();
@@ -18,8 +21,18 @@ export default function EndOfDay(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "Backspace") {
+      if (e.key === "SoftLeft" || e.key === "Backspace") {
         nav("/menu");
+        e.preventDefault();
+      } else if (e.key === "SoftRight") {
+        route("/settings");
+        e.preventDefault();
+      } else if (e.key === "Enter" || e.key === " ") {
+        console.log(focused);
+        setFocused((f) => (f + 1) % 2);
+        const input = document.getElementById("date-input");
+        input?.focus();
+        (input as HTMLInputElement)?.showPicker?.();
         e.preventDefault();
       }
     };
@@ -28,20 +41,10 @@ export default function EndOfDay(_props: { path?: string }) {
   }, [nav]);
   return (
     <section className="space-y-5">
-      <div className="flex items-center justify-between">
-        <a onClick={() => nav("/menu")} className="text-lg">← <span data-l10n-id="back">Back</span></a>
-        <div data-l10n-id="eod-report" className="text-xl font-semibold"></div>
-        <div className="w-15" />
-      </div>
+      <Header />
       <div
         tabIndex={0 === focused ? 0 : -1}
-        className=" mt-4 p-4 rounded-xl  bg-white focus:ring-2 focus:ring-emerald-400"
-        onKeyDown={e => {
-          console.log(e.key);
-          if (e.key === "Enter") {
-            document.getElementById("date-input")?.focus();
-          }
-        }}
+        className=" mt-4 p-4 bg-white focus:ring-2 focus:ring-emerald-400"
       >
         <label className="flex flex-row gap-4 justify-between">
           <div className="flex flex-col" >
@@ -49,7 +52,7 @@ export default function EndOfDay(_props: { path?: string }) {
             <input
               id="date-input"
               type="date"
-              className="mt-2 mb-2 font-semibold border-none  py-3"
+              className="mt-2 mb-2 font-semibold border-none py-3"
               value={reportDate}
               onChange={(e) => setReportDate((e.target as HTMLInputElement).value)}
             />
@@ -70,7 +73,7 @@ export default function EndOfDay(_props: { path?: string }) {
         </div>
       </div>
       <div data-l10n-id="transactions" className="text-2xl space-y-4"></div>
-      <div className="rounded-2xl overflow-hidden border border-white-10">
+      <div className="overflow-hidden border border-white-10">
         {items.map((t, i) => (
           <li
             key={t.id}
@@ -103,6 +106,7 @@ export default function EndOfDay(_props: { path?: string }) {
           </div>
         )}
       </div>
+      <Footer />
     </section>
   );
 }

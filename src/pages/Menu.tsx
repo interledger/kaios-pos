@@ -2,6 +2,12 @@ import { useAppStore } from "@state/AppStore";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { route } from "preact-router";
 
+import { Footer } from "@components/Footer";
+import { Header } from "@components/Header";
+import { SellIcon } from "@components/icons/SellIcon";
+import { BalanceIcon } from "@components/icons/BalanceIcon";
+import { EodIcon } from "@components/icons/EodIcon";
+
 export default function Menu(_props: { path?: string }) {
   const nav = route;
   const { paymentPointer } = useAppStore();
@@ -9,7 +15,6 @@ export default function Menu(_props: { path?: string }) {
     { key: "sell", path: "/sell" },
     { key: "balance", path: "/balance" },
     { key: "eod", path: "/eod" },
-    { key: "settings", path: "/settings" },
   ];
   const [focused, setFocused] = useState(0); // 0 = Sell
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -35,6 +40,9 @@ export default function Menu(_props: { path?: string }) {
       } else if (e.key === "Enter" || e.key === " ") {
         nav(items[focused].path);
         e.preventDefault();
+      } else if (e.key === "SoftRight") {
+        route("/settings");
+        e.preventDefault();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -42,15 +50,8 @@ export default function Menu(_props: { path?: string }) {
   }, [focused, nav]);
 
   return (
-    <section
-      className="flex flex-col gap-2 mt-4 w-full max-w-270 mx-auto px-1"
-      style={{ minWidth: 0 }}
-    >
-      <div className="flex items-center justify-between">
-        <div className="w-10" />
-        <div data-l10n-id="menu" className="text-lg"></div>
-        <div className="w-10" />
-      </div>
+    <section className="flex flex-col w-full">
+      {/* <Header /> */}
       {items.map((it, i) => (
         <button
           key={it.key}
@@ -59,19 +60,38 @@ export default function Menu(_props: { path?: string }) {
           }}
           tabIndex={i === focused ? 0 : -1}
           onClick={() => nav(it.path)}
-          className={`bg-none bg-white rounded mb-2 px-2 py-3 text-left border-none text-black font-semibold focus:bg-orange-700 ${i === focused ? "item-bg" : ""}`}
+          className={`bg-none bg-white py-3 text-left text-3xl menu-height border-none text-black font-semibold ${i === focused ? "active-item-bg" : ""}`}
         >
           <div className="flex flex-row">
-            <div className="flex items-center mx-4">
-              <img src={`/assets/icons/${it.key}.png`} alt="" className="w-6 h-6" />
+            <div className="flex mx-4 items-center">
+              {it.key === 'sell' && <SellIcon fill={`${i === focused ? "white" : "#10b981"}`} />}
+              {it.key === 'balance' && <BalanceIcon fill={`${i === focused ? "white" : "#815181"}`} />}
+              {it.key === 'eod' && <EodIcon fill={`${i === focused ? "white" : "#FF7A7F"}`} />}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-grow flex-col">
               <span data-l10n-id={`menu-${it.key}`}></span>
-              <span data-l10n-id={`menu-${it.key}-hint`} className="text-sm"></span>
+              <span data-l10n-id={`menu-${it.key}-hint`} className="text-xl"></span>
+            </div>
+            <div className="flex-none items-center">
+              <svg width="24" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_488_5622)">
+                  <path d="M8 7.41L12.58 12L8 16.59L9.41 18L15.41 12L9.41 6L8 7.41Z" fill={`${i === focused ? "white" : "#000000"}`} />
+                </g>
+                <defs>
+                  <clipPath id="clip0_488_5622">
+                    <rect width="24" height="24" fill="white" />
+                  </clipPath>
+                </defs>
+              </svg>
             </div>
           </div>
         </button>
-      ))}
-    </section>
+      ))
+      }
+      <div className="w-15 h-15" />
+      <Footer
+        backBtn={false}
+      />
+    </section >
   );
 }

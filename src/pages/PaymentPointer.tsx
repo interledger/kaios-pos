@@ -3,17 +3,19 @@ import { route } from "preact-router";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useAppStore } from "@state/AppStore";
 import { handlePaymentPointerEnter } from "@lib/paymentPointer";
+import { Footer } from "@components/Footer";
+import { Header } from "@components/Header";
+import { currencySymbol } from "@lib/currency";
+
 export default function PaymentPointer(_props: { path?: string }) {
   const nav = route;
-  const { error, setError, setCurrency, paymentPointer, setPaymentPointer } =
+  const { error, setError, currency, setCurrency, paymentPointer, setPaymentPointer } =
     useAppStore();
   const [paymentPointerInput, setPaymentPointerInput] =
     useState(paymentPointer);
   const [focused, setFocused] = useState(0); // 0 = input, 1 = delete button
   const inputRef = useRef<HTMLInputElement>(null);
   const deleteBtnRef = useRef<HTMLButtonElement>(null);
-
-  // handleEnterPress is now handled by handlePaymentPointerEnter helper
 
   useEffect(() => {
     if (paymentPointer.length == 0) {
@@ -23,7 +25,7 @@ export default function PaymentPointer(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const backKeys = ["SoftRight", "EndCall"];
+      const backKeys = ["SoftLeft", "EndCall"];
       if (e.key === "ArrowDown" || e.key === "ArrowRight") {
         setFocused((f) => (f + 1) % 2);
         e.preventDefault();
@@ -31,7 +33,7 @@ export default function PaymentPointer(_props: { path?: string }) {
         setFocused((f) => (f - 1 + 2) % 2);
         e.preventDefault();
       } else if (backKeys.indexOf(e.key) !== -1) {
-        nav("/menu");
+        nav("/settings");
         e.preventDefault();
       }
     };
@@ -45,23 +47,14 @@ export default function PaymentPointer(_props: { path?: string }) {
   }, [focused]);
   return (
     <section className="space-y-2">
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => nav("/settings")}
-          className="text-sm text-white/70 hover:text-white"
-        >
-          ← Back
-        </button>
-        <div className="text-lg">Payment pointer</div>
-        <div className="w-10" />
-      </div>
-      <label className="block">
-        <span className="text-sm text-white/80">Payment pointer</span>
-        <div className="mt-2">
+      <Header />
+      <div className={`flex flex-col p-4 mt-4 ${0 === focused ? "active-item-bg" : ""}`}>
+        <span className="">Payment pointer</span>
+        <div className="flex flex-row mt-2">
           <input
             ref={inputRef}
             tabIndex={focused === 0 ? 0 : -1}
-            className="w-full rounded-xl bg-white/10 px-2 py-2 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
+            className="px-2 py-2 flex webkit-fill text-2xl font-semibold border-none rounded-lg "
             placeholder="e.g., $example.com/alice"
             value={paymentPointerInput}
             onKeyDown={async (e) => {
@@ -80,26 +73,32 @@ export default function PaymentPointer(_props: { path?: string }) {
           />
         </div>
         {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      </div>
+      <div className="flex flex-col p-4 mt-4 bg-field ">
+        <span className="">Currency</span>
+        <div className="flex flex-row mt-2">
+          <span>{currency}</span>
+        </div>
+      </div>
+      <div className={`block text-center ${1 === focused ? "bg-red-200" : ""}`}>
+        <label className="mx-auto">
+          <button
+            ref={deleteBtnRef}
+            tabIndex={focused === 1 ? 0 : -1}
+            type="button"
+            className={`mt-4 mb-4 border-none rounded-xl bg-red-600 px-3 py-2 text-white text-xl font-semibold ${1 === focused ? "bg-red-700 border-white " : "border-red-600"}`}
+            onClick={() => {
+              setPaymentPointer("");
+              setPaymentPointerInput("");
+              setError("");
+            }}
+          >
+            Delete payment pointer
+          </button>
+        </label>
+      </div>
 
-      </label>
-      <label className="block">
-        <button
-          ref={deleteBtnRef}
-          tabIndex={focused === 1 ? 0 : -1}
-          type="button"
-          className="mt-4 w-full rounded-xl bg-red-600 px-3 py-2 text-white text-xs font-semibold hover:bg-red-700"
-          onClick={() => {
-            setPaymentPointer("");
-            setPaymentPointerInput("");
-            setError("");
-          }}
-        >
-          Delete payment pointer
-        </button>
-      </label>
-      <label className="block">
-
-      </label>
+      <Footer optionBtn={false} />
     </section>
   );
 }

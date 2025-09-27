@@ -13,8 +13,6 @@ import { createPaymentServiceData } from "@lib/paymentService";
 import { useAppStore } from "@state/AppStore";
 import { playRingtone } from "@lib/commonHelper";
 import { formatCurrency } from "@lib/currency";
-import { Header } from "@components/Header";
-import { Footer } from "@components/Footer";
 
 
 interface MozNFCTag {
@@ -37,7 +35,7 @@ type WaitCardProps = {
   className?: string;
 };
 
-export default function WaitCard({
+export default function WaitCardARQC({
   path,
   decrement,
   playRingtone,
@@ -49,15 +47,6 @@ export default function WaitCard({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const { currency, paymentPointer, amount } = useAppStore();
 
-  const [transactionStatus, setTransactionStatus] = useState(0);
-
-  const statuses = [
-    { index: 0, key: "debit-card", icon: "debit-card" },
-    { index: 1, key: "processing", icon: "processing" },
-    { index: 2, key: "complete", icon: "checked" },
-    { index: 3, key: "failed", icon: "failed" },
-
-  ];
   const sendAPDUCommands = useCallback(
     async (tag: MozNFCTag) => {
       try {
@@ -196,13 +185,11 @@ export default function WaitCard({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.key === "Backspace" ||
-        e.key === "SoftLeft" ||
+        e.key === "ArrowLeft" ||
+        e.key === "SoftRight" || //lets see if this works.
         e.key === "EndCall" //lets see if this works.
       ) {
         route("/sell");
-        e.preventDefault();
-      } else if (e.key === "Enter") {
-        setTransactionStatus((s) => (s + 1) % statuses.length);
         e.preventDefault();
       }
     };
@@ -216,22 +203,20 @@ export default function WaitCard({
       tabIndex={-1}
       className={`${className}`}
     >
-      <Header title="Waiting for Card" />
-      <div className="flex flex-col mt-4 py-8 bg-white ">
-
-        <h2 data-l10n-id={`statuses-${transactionStatus}-key`} className="mt-4 mb-2 px-4 text-3xl text-center font-semibold"></h2>
-        {transactionStatus === 0 && (
-          <p className="text-3xl my-1  font-semibold text-center">
-            {formatCurrency(parseFloat(amount || "0"), currency)}
-          </p>
-        )}
-
-        <span data-l10n-id={`statuses-${transactionStatus}-key-message`} className="mt-4 mb-2 px-4 text-xl text-center">Hold card near the reader</span>
+      <div className="flex items-center justify-between">
+        <a onClick={() => route("/menu")} className="text-lg">← Back</a>
+        <div className="text-lg">Sell ARQC</div>
+        <div className="w-10" />
+      </div>
+      <div className="flex flex-col mt-4 rounded-2xl py-8 bg-white ">
+        <h2 className="mt-4 mb-2 px-4 text-3xl text-center font-semibold">Hold card near the reader</h2>
+        <p className="text-lg my-1 text-center">
+          {formatCurrency(parseFloat(amount || "0"), currency)}
+        </p>
         <div className="mt-4 mb-4 text-center">
-          <img src={`/assets/icons/${statuses[transactionStatus].icon}.png`} className="mx-auto" />
+          <img src="/assets/icons/debit-card.png" className="mx-auto w-64 h-64" />
         </div>
       </div>
-      <Footer selectBtn={false} optionBtn={false} />
     </div>
   );
 }

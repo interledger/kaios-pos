@@ -1,16 +1,26 @@
 import { route } from "preact-router";
+import { useEffect, useState } from "preact/hooks";
 import { useAppStore, selectTotalBalance } from "@state/AppStore";
 import { formatCurrency, currencySymbol, formatValue } from "@lib/currency";
-import { useEffect } from "preact/hooks";
+import { Header } from "@components/Header";
+import { Footer } from "@components/Footer";
+
 export default function Balance(_props: { path?: string }) {
   const nav = route;
   const { currency, tx } = useAppStore();
   const totalBalance = selectTotalBalance({ tx });
+  const [loadMoreTx, setLoadMoreTx] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "Backspace") {
+      if (e.key === "SoftLeft" || e.key === "Backspace") {
         nav("/menu");
+        e.preventDefault();
+      } else if (e.key === "Enter" || e.key === " ") {
+        setLoadMoreTx(true)
+        e.preventDefault();
+      } else if (e.key === "SoftRight") {
+        route("/settings");
         e.preventDefault();
       }
     };
@@ -19,12 +29,8 @@ export default function Balance(_props: { path?: string }) {
   }, [nav]);
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <a onClick={() => nav("/menu")} className="text-lg">← <span data-l10n-id="back">Back</span></a>
-        <div data-l10n-id="balance" className="text-xl font-semibold"></div>
-        <div className="w-15" />
-      </div>
-      <div className="mt-6 rounded-2xl bg-emerald-500 p-4">
+      <Header />
+      <div className="mt-6 bg-emerald-500 p-4">
         <div data-l10n-id="total-balance" className="text-3xl font-semibold text-green-50"></div>
         <div className="text-4xl font-bold mt-1 text-green-50">
           {formatCurrency(totalBalance, currency)}
@@ -36,7 +42,7 @@ export default function Balance(_props: { path?: string }) {
           {tx.slice(0, 10).map((t) => (
             <li
               key={t.id}
-              className="flex flex-col mt-4 mb-4 rounded-xl py-3 bg-white px-4"
+              className="flex flex-col mt-1 py-3 bg-white px-4"
             >
               <div className="flex flex-row justify-between">
                 <div className="flex flex-col">
@@ -51,8 +57,36 @@ export default function Balance(_props: { path?: string }) {
               </div>
             </li>
           ))}
+          {loadMoreTx && tx.length > 10 && tx.slice(10).map((t) => (
+            <li
+              key={t.id}
+              className="flex flex-col mt-1 py-3 bg-white px-4"
+            >
+              <div className="flex flex-row justify-between">
+                <div className="flex flex-col">
+                  <div className="font-semibold text-xl text-green-500">
+                    {formatValue(t.amount)}
+                  </div>
+                  <div className="">
+                    {t.ts.toLocaleString?.() || String(t.ts)}
+                  </div>
+                </div>
+                <div className="text-2xl">{currencySymbol(t.currency)}</div>
+              </div>
+            </li>
+          ))}
+          {!loadMoreTx && (
+            <div
+              onClick={() => setLoadMoreTx(true)}
+              className="w-45 mx-auto text-center p-4  mt-2 text-3xl text-white bg-green-500 font-semibold rounded-4xl"
+            >
+              <span data-l10n-id="load-more"></span>
+            </div>
+          )}
         </ul>
       </div>
+
+      <Footer />
     </section>
   );
 }

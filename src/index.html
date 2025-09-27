@@ -1,28 +1,30 @@
 <!doctype html>
 <html lang="en" class="w-full">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta id="theme-color" name="theme-color" content="rgb(255, 255, 255)" />
 
-    <meta name="defaultLanguage" content="ro-RO" />
-    <meta name="availableLanguages" content="ro-RO, en-US" />
-    <title>Interledger POS</title>
-    <link rel="localization" href="/locales/kai-pos.{locale}.properties" />
-  </head>
-  <body id="app" class="min-h-screen">
-    <div id="root"></div>
-    <script>
-      window.addEventListener('error', function(event) {
-        var msg = '[JS Error] ' + event.message + ' at ' + event.filename + ':' + event.lineno + ':' + event.colno;
-        var pre = document.createElement('pre');
-        pre.style.color = 'red';
-        pre.style.background = '#fff0f0';
-        pre.style.fontSize = '12px';
-        pre.style.padding = '4px';
-        pre.textContent = msg;
-        document.body.appendChild(pre);
-      });
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <meta id="theme-color" name="theme-color" content="rgb(242, 242, 242)" />
+  <meta name="defaultLanguage" content="en-US" />
+  <meta name="availableLanguages" content="ro-RO, en-US" />
+  <title>Interledger POS</title>
+  <link rel="localization" href="/locales/kai-pos.{locale}.properties" />
+</head>
+
+<body id="app" class="min-h-screen">
+  <div id="root"></div>
+  <script>
+    window.addEventListener('error', function (event) {
+      var msg = '[JS Error] ' + event.message + ' at ' + event.filename + ':' + event.lineno + ':' + event.colno;
+      var pre = document.createElement('pre');
+      pre.style.color = 'red';
+      pre.style.background = '#fff0f0';
+      pre.style.fontSize = '12px';
+      pre.style.padding = '4px';
+      pre.textContent = msg;
+      document.body.appendChild(pre);
+    });
+  </script>
+</body>
+
 </html>
