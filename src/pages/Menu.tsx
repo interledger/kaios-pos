@@ -16,7 +16,6 @@ export default function Menu(_props: { path?: string }) {
     { key: "sell", path: "/sell", icon: "sell.png" },
     { key: "balance", path: "/balance", icon: "balance.png" },
     { key: "eod", path: "/eod", icon: "eod.png" },
-    { key: "doamne", path: "/settings", icon: "settings.png" },
   ];
   const [focused, setFocused] = useState(0); // 0 = Sell
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
