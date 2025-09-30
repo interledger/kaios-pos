@@ -233,7 +233,7 @@ export default function WaitCard({
       tabIndex={-1}
       className={`${className}`}
     >
-      <Header title="Waiting for Card" />
+      <Header title="wait-card" />
       <div className="flex flex-col mt-4 py-8 bg-white ">
 
         <h2 data-l10n-id={`statuses-${transactionStatus}-key`} className="mt-4 mb-2 px-4 text-3xl text-center font-semibold"></h2>
@@ -243,7 +243,7 @@ export default function WaitCard({
           </p>
         )}
 
-        <span data-l10n-id={`statuses-${transactionStatus}-key-message`} className="mt-4 mb-2 px-4 text-xl text-center">Hold card near the reader</span>
+        <span data-l10n-id={`statuses-${transactionStatus}-key-message`} className="mt-4 mb-2 px-4 text-xl text-center"></span>
         <div className="mt-4 mb-4 text-center">
           <img src={`/assets/icons/${statuses[transactionStatus].icon}.png`} className="mx-auto" />
         </div>

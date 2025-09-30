@@ -8,23 +8,11 @@
   <meta name="defaultLanguage" content="en-US" />
   <meta name="availableLanguages" content="ro-RO, es-ES, en-US" />
   <title>Interledger POS</title>
-  <link rel="localization" href="/locales/kai-pos.{locale}.properties" />
+  <link rel="localization" href="/locales/translations/messages.{locale}.properties" />
 </head>
 
 <body id="app" class="min-h-screen">
   <div id="root"></div>
-  <script>
-    window.addEventListener('error', function (event) {
-      var msg = '[JS Error] ' + event.message + ' at ' + event.filename + ':' + event.lineno + ':' + event.colno;
-      var pre = document.createElement('pre');
-      pre.style.color = 'red';
-      pre.style.background = '#fff0f0';
-      pre.style.fontSize = '12px';
-      pre.style.padding = '4px';
-      pre.textContent = msg;
-      document.body.appendChild(pre);
-    });
-  </script>
 </body>
 
 </html>
