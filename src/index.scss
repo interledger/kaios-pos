@@ -129,8 +129,6 @@ input[type="date"]::-moz-focus-inner {
   border: 0;
 }
 
-// --- Begin Tailwind to SCSS conversion ---
-
 .min-h-screen {
   min-height: 100vh;
 }
@@ -535,7 +533,6 @@ input[type="date"]::-moz-focus-inner {
 .rounded-4xl {
   border-radius: 2rem;
 }
-
 
 .max-w-md {
   max-width: 28rem;
