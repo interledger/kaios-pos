@@ -18,6 +18,8 @@ export type Store = {
   locale: string;
   _hasHydrated: boolean;
   signSecret: string;
+  pin: string;
+  pinTries: number;
 };
 
 type Action =
@@ -28,7 +30,9 @@ type Action =
   | { type: "setError"; value: string | null }
   | { type: "setLocale"; value: string }
   | { type: "setHasHydrated"; value: boolean }
-  | { type: "setSignSecret"; value: string };
+  | { type: "setSignSecret"; value: string }
+  | { type: "setPin"; value: string }
+  | { type: "setPinTries"; value: number }
 
 const sampleTx: Tx[] = [
   {
@@ -147,6 +151,8 @@ const initialState: Store = {
   locale: "en-US",
   _hasHydrated: false,
   signSecret: "",
+  pin: "",
+  pinTries: 0,
 };
 
 function reducer(state: Store, action: Action): Store {
@@ -167,6 +173,10 @@ function reducer(state: Store, action: Action): Store {
       return { ...state, _hasHydrated: action.value };
     case "setSignSecret":
       return { ...state, signSecret: action.value };
+    case "setPin":
+      return { ...state, pin: action.value };
+    case "setPinTries":
+      return { ...state, pinTries: action.value };
     default:
       return state;
   }
@@ -205,6 +215,8 @@ export function AppStoreProvider({
         dispatch({ type: "setError", value: parsed.error || null });
         dispatch({ type: "setLocale", value: parsed.locale || "en-US" });
         dispatch({ type: "setSignSecret", value: parsed.signSecret || "" });
+        dispatch({ type: "setPin", value: parsed.pin || "" });
+        dispatch({ type: "setPinTries", value: parsed.pinTries || 0 });
       }
       if (!raw) {
         console.log("[AppStore] No persisted state found in localStorage");
@@ -257,6 +269,8 @@ export function useAppStore() {
     setHasHydrated: (v: boolean) =>
       dispatch({ type: "setHasHydrated", value: v }),
     setSignSecret: (v: string) => dispatch({ type: "setSignSecret", value: v }),
+    setPin: (v: string) => dispatch({ type: "setPin", value: v }),
+    setPinTries: (v: number) => dispatch({ type: "setPinTries", value: v }),
   };
 }
 
