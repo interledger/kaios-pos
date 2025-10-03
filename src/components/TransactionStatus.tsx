@@ -26,10 +26,12 @@ export function TransactionStatus({
         className="mt-4 mb-2 px-4 text-xl text-center"
       ></span>
       <div className="mt-4 mb-4 text-center">
-        <img
-          src={`/assets/icons/${statuses[transactionStatus].icon}.png`}
-          className="mx-auto"
-        />
+        {statuses[transactionStatus].icon && (
+          <img
+            src={`/assets/icons/${statuses[transactionStatus].icon}.png`}
+            className="mx-auto"
+          />
+        )}
       </div>
     </div>
   );

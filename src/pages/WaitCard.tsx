@@ -11,7 +11,7 @@ import {
 } from "@lib/generateAC";
 import {
   createPaymentServiceData,
-  sendPaymentToRafiki,
+  sendPaymentToPosService,
 } from "@lib/paymentService";
 import { useAppStore } from "@state/AppStore";
 import { playRingtone } from "@lib/commonHelper";
@@ -21,7 +21,7 @@ import { Footer } from "@components/Footer";
 import { PinComponent } from "@components/PinComponent";
 import { statuses } from "@constants/statuses";
 import { TransactionStatus } from "@components/TransactionStatus";
-
+import type { PaymentServiceData } from "@lib/paymentService";
 
 interface MozNFCTag {
   id: Uint8Array;
@@ -53,24 +53,34 @@ export default function WaitCard({
   className = "",
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const { currency, paymentPointer, amount, signSecret } = useAppStore();
+  const {
+    currency,
+    paymentPointer,
+    amount,
+    signSecret,
+    pinVerified,
+    setPinVerified,
+  } = useAppStore();
+  const [preparedPayment, setPreparedPayment] =
+    useState<PaymentServiceData | null>(null);
 
+  // 0: waiting for card, 4: pin, 1: processing, 2: complete, 3: failed
   const [transactionStatus, setTransactionStatus] = useState(0);
 
   const sendAPDUCommands = useCallback(
-    async (tag: MozNFCTag) => {
+    async (tag: MozNFCTag): Promise<PaymentServiceData | null> => {
       try {
         console.log("Starting APDU communication with tag...");
 
         if (tag.techList.indexOf("ISO-DEP") === -1) {
           console.error("Tag does not support ISO-DEP protocol");
-          return;
+          return null;
         }
 
         const tech = tag.selectTech("ISO-DEP");
         if (!tech) {
           console.error("Failed to select ISO-DEP technology");
-          return;
+          return null;
         }
 
         console.log("Selected ISO-DEP technology, tech object:", tech);
@@ -99,34 +109,24 @@ export default function WaitCard({
         console.log("=== GENERATE AC RESPONSE ===");
         console.log(uint8ArrayToHexString(generateResponse));
 
-        // Create payment json to be sent to rafiki
+        // Create payment json to be sent to pos service
         const paymentData = createPaymentServiceData(
           transactionData,
           generateResponse,
           rawData,
           timestamp,
         );
-
-        console.log("=== Rafiki payment JSON ===");
+        console.log("=== POS SERVICE payment JSON (prepared) ===");
         console.log(JSON.stringify(paymentData, null, 2));
 
-        // Send payment to Rafiki POS service
-        const rafikiResult = await sendPaymentToRafiki(paymentData, signSecret);
-
-        if (rafikiResult.success) {
-          console.log("Payment sent to Rafiki successfully!");
-          // Play success sound
-          playRingtone?.();
-        } else {
-          console.error(
-            "Failed to send payment to Rafiki:",
-            rafikiResult.error,
-          );
-        }
-
-        console.log("APDU communication completed successfully");
+        console.log(
+          "APDU communication completed successfully; payment prepared",
+        );
+        return paymentData;
       } catch (error) {
         console.error("Error during APDU communication:", error);
+        setTransactionStatus(3); // failed
+        return null;
       }
     },
     [amount, paymentPointer, signSecret],
@@ -156,11 +156,45 @@ export default function WaitCard({
         if (typeof event.preventDefault === "function") {
           try {
             event.preventDefault();
-          } catch { }
+          } catch {}
         }
 
-        // Send APDU commands
-        sendAPDUCommands(tag as MozNFCTag);
+        // Decide PIN requirement by amount
+        const amountNumber = parseFloat(amount || "0");
+        const pinThreshold = 100; // threshold for requiring PIN
+        const requirePin = amountNumber > pinThreshold && !pinVerified;
+
+        // Show processing while talking to the card
+        setTransactionStatus(1);
+
+        (async () => {
+          const paymentData = await sendAPDUCommands(tag as MozNFCTag);
+          if (!paymentData) return;
+          setPreparedPayment(paymentData);
+
+          if (requirePin) {
+            setTransactionStatus(4);
+          } else {
+            // Send directly to POS SERVICE
+            const posServiceResult = await sendPaymentToPosService(
+              paymentData,
+              signSecret,
+            );
+            if (posServiceResult.success) {
+              console.log("Payment sent to POS SERVICE!");
+              playRingtone?.();
+              setPinVerified(false);
+              setPreparedPayment(null);
+              setTransactionStatus(2);
+            } else {
+              console.error(
+                "Failed to send payment to POS SERVIEC:",
+                posServiceResult.error,
+              );
+              setTransactionStatus(3);
+            }
+          }
+        })();
       } else {
         console.log(
           "Tag does not support required technologies:",
@@ -168,7 +202,14 @@ export default function WaitCard({
         );
       }
     },
-    [decrement, playRingtone, sendAPDUCommands],
+    [
+      decrement,
+      playRingtone,
+      sendAPDUCommands,
+      amount,
+      pinVerified,
+      signSecret,
+    ],
   );
 
   const handleTagLost = useCallback(
@@ -215,7 +256,7 @@ export default function WaitCard({
         route("/sell");
         e.preventDefault();
       } else if (e.key === "Enter") {
-        setTransactionStatus((s) => (s + 1) % statuses.length);
+        // prevent manual cycling; Enter does nothing here
         e.preventDefault();
       }
     };
@@ -224,14 +265,41 @@ export default function WaitCard({
   }, []);
 
   return (
-    <div
-      ref={panelRef}
-      tabIndex={-1}
-      className={`${className}`}
-    >
+    <div ref={panelRef} tabIndex={-1} className={`${className}`}>
       <Header title="wait-card" />
       {transactionStatus === 4 && (
-        <PinComponent />
+        <PinComponent
+          onComplete={() => {
+            // Mark verified and send prepared payment to POS service
+            setPinVerified(true);
+            if (preparedPayment) {
+              setTransactionStatus(1);
+              (async () => {
+                const posServiceResult = await sendPaymentToPosService(
+                  preparedPayment,
+                  signSecret,
+                );
+                if (posServiceResult.success) {
+                  playRingtone?.();
+                  setPinVerified(false);
+                  setPreparedPayment(null);
+                  setTransactionStatus(2);
+                } else {
+                  console.error(
+                    "Failed to send payment to POS service:",
+                    posServiceResult.error,
+                  );
+                  setTransactionStatus(3);
+                }
+              })();
+            } else {
+              setTransactionStatus(3);
+            }
+          }}
+          onCancel={() => {
+            setTransactionStatus(3);
+          }}
+        />
       )}
       {transactionStatus < 4 && (
         <TransactionStatus
