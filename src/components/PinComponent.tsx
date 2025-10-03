@@ -65,7 +65,7 @@ export function PinComponent() {
   }, [localPin, nav, pinTries, setPin, setPinTries]);
 
   return (
-    <div className="mt-4 rounded-xl bg-white px-4 py-6 text-center">
+    <div className="mt-4 bg-white px-4 py-6 text-center">
       <div className="flex flex-row justify-center tabular-nums text-center text-5xl font-bold tracking-widest">
         {Array.from({ length: PIN_LENGTH }).map((_, i) => {
           return (
