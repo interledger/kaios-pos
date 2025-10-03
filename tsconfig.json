@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-  "target": "ES5",
+    "target": "ES5",
     "useDefineForClassFields": true,
     "lib": [
       "es5",
@@ -21,13 +21,30 @@
     "strict": true,
     "baseUrl": "./",
     "paths": {
-      "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"],
-      "@routes/*": ["src/routes/*"],
-      "@state/*": ["src/state/*"],
-      "@services/*": ["src/services/*"],
-      "@lib/*": ["src/lib/*"]
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@pages/*": [
+        "src/pages/*"
+      ],
+      "@routes/*": [
+        "src/routes/*"
+      ],
+      "@state/*": [
+        "src/state/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@lib/*": [
+        "src/lib/*"
+      ],
+      "@constants/*": [
+        "src/constants/*"
+      ]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

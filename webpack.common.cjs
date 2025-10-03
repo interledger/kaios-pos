@@ -38,6 +38,7 @@ module.exports = {
       "@state": resolveApp("./src/state/"),
       "@lib": resolveApp("./src/lib/"),
       "@services": resolveApp("./src/services/"),
+      "@constants": resolveApp("./src/constants/"),
     },
   },
   optimization: {

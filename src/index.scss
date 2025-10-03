@@ -291,6 +291,12 @@ input[type="date"]::-moz-focus-inner {
   /* 40px */
 }
 
+.text-5xl {
+  font-size: 3.5rem;
+  /* 48px */
+  line-height: 4rem;
+}
+
 .font-normal {
   font-weight: 400;
 }
@@ -309,6 +315,10 @@ input[type="date"]::-moz-focus-inner {
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+.tracking-widest {
+  letter-spacing: 0.1em;
 }
 
 .italic {

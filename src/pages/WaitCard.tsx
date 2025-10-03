@@ -18,6 +18,9 @@ import { playRingtone } from "@lib/commonHelper";
 import { formatCurrency } from "@lib/currency";
 import { Header } from "@components/Header";
 import { Footer } from "@components/Footer";
+import { PinComponent } from "@components/PinComponent";
+import { statuses } from "@constants/statuses";
+import { TransactionStatus } from "@components/TransactionStatus";
 
 
 interface MozNFCTag {
@@ -54,13 +57,6 @@ export default function WaitCard({
 
   const [transactionStatus, setTransactionStatus] = useState(0);
 
-  const statuses = [
-    { index: 0, key: "debit-card", icon: "debit-card" },
-    { index: 1, key: "processing", icon: "processing" },
-    { index: 2, key: "complete", icon: "checked" },
-    { index: 3, key: "failed", icon: "failed" },
-
-  ];
   const sendAPDUCommands = useCallback(
     async (tag: MozNFCTag) => {
       try {
@@ -234,20 +230,16 @@ export default function WaitCard({
       className={`${className}`}
     >
       <Header title="wait-card" />
-      <div className="flex flex-col mt-4 py-8 bg-white ">
-
-        <h2 data-l10n-id={`statuses-${transactionStatus}-key`} className="mt-4 mb-2 px-4 text-3xl text-center font-semibold"></h2>
-        {transactionStatus === 0 && (
-          <p className="text-3xl my-1  font-semibold text-center">
-            {formatCurrency(parseFloat(amount || "0"), currency)}
-          </p>
-        )}
-
-        <span data-l10n-id={`statuses-${transactionStatus}-key-message`} className="mt-4 mb-2 px-4 text-xl text-center"></span>
-        <div className="mt-4 mb-4 text-center">
-          <img src={`/assets/icons/${statuses[transactionStatus].icon}.png`} className="mx-auto" />
-        </div>
-      </div>
+      {transactionStatus === 4 && (
+        <PinComponent />
+      )}
+      {transactionStatus < 4 && (
+        <TransactionStatus
+          transactionStatus={transactionStatus}
+          amount={amount}
+          currency={currency}
+        />
+      )}
       <Footer selectBtn={false} optionBtn={false} />
     </div>
   );
