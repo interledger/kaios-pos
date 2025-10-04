@@ -48,9 +48,7 @@ export default function Sell(_props: { path?: string }) {
         onKey("C");
         e.preventDefault();
       } else if (e.key === "Enter") {
-        if (parseFloat(amount || "0") > 1000) {
-          nav("/pin");
-        } else if (parseFloat(amount || "0") > 0) {
+        if (parseFloat(amount || "0") > 0) {
           nav("/wait-card");
         }
         e.preventDefault();

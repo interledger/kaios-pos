@@ -20,6 +20,7 @@ export type Store = {
   signSecret: string;
   pin: string;
   pinTries: number;
+  pinVerified: boolean;
 };
 
 type Action =
@@ -33,6 +34,7 @@ type Action =
   | { type: "setSignSecret"; value: string }
   | { type: "setPin"; value: string }
   | { type: "setPinTries"; value: number }
+  | { type: "setPinVerified"; value: boolean };
 
 const sampleTx: Tx[] = [
   {
@@ -139,7 +141,7 @@ const sampleTx: Tx[] = [
     fee: 0.07,
     currency: "EUR",
     ts: new Date(Date.now() - 1000 * 60 * 30),
-  }
+  },
 ];
 
 const initialState: Store = {
@@ -153,6 +155,7 @@ const initialState: Store = {
   signSecret: "",
   pin: "",
   pinTries: 0,
+  pinVerified: false,
 };
 
 function reducer(state: Store, action: Action): Store {
@@ -177,6 +180,8 @@ function reducer(state: Store, action: Action): Store {
       return { ...state, pin: action.value };
     case "setPinTries":
       return { ...state, pinTries: action.value };
+    case "setPinVerified":
+      return { ...state, pinVerified: action.value };
     default:
       return state;
   }
@@ -217,6 +222,8 @@ export function AppStoreProvider({
         dispatch({ type: "setSignSecret", value: parsed.signSecret || "" });
         dispatch({ type: "setPin", value: parsed.pin || "" });
         dispatch({ type: "setPinTries", value: parsed.pinTries || 0 });
+        // Do not hydrate pinVerified; always start false per session
+        dispatch({ type: "setPinVerified", value: false });
       }
       if (!raw) {
         console.log("[AppStore] No persisted state found in localStorage");
@@ -234,6 +241,8 @@ export function AppStoreProvider({
       // Serialize to a plain object for localStorage
       const toSave = {
         ...state,
+        // Ensure we do not persist pinVerified across sessions
+        pinVerified: false,
         tx: state.tx.map((t) => ({
           ...t,
           ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts,
@@ -271,6 +280,8 @@ export function useAppStore() {
     setSignSecret: (v: string) => dispatch({ type: "setSignSecret", value: v }),
     setPin: (v: string) => dispatch({ type: "setPin", value: v }),
     setPinTries: (v: number) => dispatch({ type: "setPinTries", value: v }),
+    setPinVerified: (v: boolean) =>
+      dispatch({ type: "setPinVerified", value: v }),
   };
 }
 

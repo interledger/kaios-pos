@@ -4,15 +4,21 @@ import { useAppStore } from "@state/AppStore";
 
 const PIN_LENGTH = 4;
 
-export function PinComponent() {
+type PinComponentProps = {
+  onComplete?: () => void;
+  onCancel?: () => void;
+};
+
+export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
   const nav = route;
-  const { pin, setPin, pinTries, setPinTries } = useAppStore();
+  const { pin, setPin, pinTries, setPinTries, setPinVerified } = useAppStore();
   const [localPin, setLocalPin] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     setPinTries(0);
     setPin("");
+    setPinVerified(false);
     setLocalPin("");
     setError("");
   }, []);
@@ -38,7 +44,8 @@ export function PinComponent() {
         onKey("Backspace");
         e.preventDefault();
       } else if (e.key === "SoftLeft") {
-        nav("/menu");
+        if (onCancel) onCancel();
+        else nav("/menu");
         e.preventDefault();
       } else if (e.key.toLowerCase() === "c") {
         onKey("c");
@@ -50,10 +57,13 @@ export function PinComponent() {
           if (localPin === "1234") {
             setPin(localPin);
             setError("");
-            nav("/menu");
+            setPinVerified(true);
+            if (onComplete) onComplete();
+            else nav("/menu");
           } else {
             setError("Invalid PIN");
             setPin("");
+            setPinVerified(false);
           }
           setLocalPin("");
         }
@@ -62,7 +72,7 @@ export function PinComponent() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [localPin, nav, pinTries, setPin, setPinTries]);
+  }, [localPin, nav, onCancel, onComplete, pinTries, setPin, setPinTries]);
 
   return (
     <div className="mt-4 bg-white px-4 py-6 text-center">
@@ -74,7 +84,7 @@ export function PinComponent() {
             </div>
           );
         })}
-      </div>{localPin} - {pin}
+      </div>
       <div className="mt-2 text-sm text-gray-600">Tries: {pinTries}</div>
       {error && <div className="mt-2 text-red-600">{error}</div>}
     </div>
