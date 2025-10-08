@@ -75,7 +75,6 @@ export default function Language(_props: { path?: string }) {
             <div className="flex flex-row">
               <div className="flex flex-grow flex-col">
                 <span data-l10n-id={`menu-${lang.code}`}></span>
-                <span data-l10n-id={`menu-${lang.code}-hint`} className="text-xl"></span>
               </div>
               <div className="flex-none items-center">
                 {locale === lang.code && <CheckIcon fill={`${i === focused ? "white" : "#007E50"}`} />}
