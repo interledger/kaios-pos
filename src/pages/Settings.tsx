@@ -6,6 +6,7 @@ import { Footer } from "@components/Footer";
 import { Header } from "@components/Header";
 import { PpIcon } from "@components/icons/PpIcon";
 import { ChevronIcon } from "@components/icons/ChevronIcon";
+import { LangIcon } from "@components/icons/LangIcon";
 
 export default function Settings(_props: { path?: string }) {
   const nav = route;
@@ -54,7 +55,7 @@ export default function Settings(_props: { path?: string }) {
       >
         <label className="flex flex-row">
           <div className="flex mx-4 items-center">
-            <PpIcon fill={`${0 === focused ? "white" : "black"}`} />
+            <PpIcon fill={`${0 === focused ? "white" : "#10b981"}`} />
           </div>
           <div className="flex flex-grow flex-col">
             <span data-l10n-id="menu-payment-pointer"></span>
@@ -72,7 +73,7 @@ export default function Settings(_props: { path?: string }) {
       >
         <label className="flex flex-row">
           <div className="flex mx-4 items-center">
-            <PpIcon fill={`${1 === focused ? "white" : "black"}`} />
+            <LangIcon fill={`${1 === focused ? "white" : "#FF7A7F"}`} />
           </div>
           <div className="flex flex-grow flex-col">
             <span data-l10n-id="menu-language"></span>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { useAppStore } from "@state/AppStore";
 import { Footer } from "@components/Footer";
 import { Header } from "@components/Header";
+import { CheckIcon } from "@components/icons/Check";
 
 export default function Language(_props: { path?: string }) {
   const nav = route;
@@ -13,7 +14,7 @@ export default function Language(_props: { path?: string }) {
     setLocale,
   } = useAppStore();
   const [focused, setFocused] = useState(0);
-  const inputRef = useRef<HTMLSelectElement>(null);
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const availableLanguages = [
     { code: "en-US", label: "English" },
@@ -22,8 +23,7 @@ export default function Language(_props: { path?: string }) {
 
   ];
 
-  function handleLocaleChange(e: Event) {
-    const newLocale = (e.target as HTMLSelectElement).value;
+  function handleLocaleChange(newLocale: string) {
     console.log("Changing locale to", newLocale);
     setLocale(newLocale);
     setTimeout(() => {
@@ -36,6 +36,9 @@ export default function Language(_props: { path?: string }) {
       nav("/setup");
     }
   }, []);
+  useEffect(() => {
+    btnRefs.current[focused]?.focus();
+  }, [focused]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,16 +47,10 @@ export default function Language(_props: { path?: string }) {
         nav("/settings");
         e.preventDefault();
       } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-        setFocused((f) => (f + 1) % 2);
+        setFocused((f) => (f + 1) % availableLanguages.length);
         e.preventDefault();
       } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-        setFocused((f) => (f - 1 + 2) % 2);
-        e.preventDefault();
-      } else if ((e.key === "Enter" || e.key === " ") && focused === 0) {
-        // Open the select dropdown for locale selection
-        inputRef.current?.focus();
-        // Some browsers support showPicker for input, but not for select
-        // For select, focus is the best we can do
+        setFocused((f) => (f - 1 + availableLanguages.length) % availableLanguages.length);
         e.preventDefault();
       }
     };
@@ -64,22 +61,27 @@ export default function Language(_props: { path?: string }) {
   return (
     <section className="space-y-2">
       <Header />
-      <div className={`flex flex-col p-4 mt-4 ${0 === focused ? "active-item-bg" : ""}`}>
-        <span data-l10n-id="app-language" className="text-2xl"></span>
-        <div className="flex flex-row mt-2">
-          <select
-            ref={inputRef}
-            value={locale}
-            onChange={handleLocaleChange}
-            className="p-2 rounded"
+      <div className="flex flex-col mt-4">
+        {availableLanguages.map((lang, i) => (
+          <button
+            key={lang.code}
+            ref={(el) => {
+              btnRefs.current[i] = el;
+            }}
+            tabIndex={i === focused ? 0 : -1}
+            onClick={() => handleLocaleChange(lang.code)}
+            className={`bg-none bg-white py-3 text-left text-3xl menu-height border-none text-black ${i === focused ? "active-item-bg" : ""}`}
           >
-            {availableLanguages.map(lang => (
-              <option key={lang.code} value={lang.code}>
-                {lang.label}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className="flex flex-row">
+              <div className="flex flex-grow flex-col">
+                <span data-l10n-id={`menu-${lang.code}`}></span>
+              </div>
+              <div className="flex-none items-center">
+                {locale === lang.code && <CheckIcon fill={`${i === focused ? "white" : "#007E50"}`} />}
+              </div>
+            </div>
+          </button>
+        ))}
       </div>
       <Footer optionBtn={false} />
     </section>
