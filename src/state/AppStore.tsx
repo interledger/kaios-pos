@@ -18,9 +18,9 @@ export type Store = {
   locale: string;
   _hasHydrated: boolean;
   signSecret: string;
-  pin: string;
   pinTries: number;
   pinVerified: boolean;
+  pinThreshold: number;
 };
 
 type Action =
@@ -32,9 +32,9 @@ type Action =
   | { type: "setLocale"; value: string }
   | { type: "setHasHydrated"; value: boolean }
   | { type: "setSignSecret"; value: string }
-  | { type: "setPin"; value: string }
   | { type: "setPinTries"; value: number }
-  | { type: "setPinVerified"; value: boolean };
+  | { type: "setPinVerified"; value: boolean }
+  | { type: "setPinThreshold"; value: number };
 
 const sampleTx: Tx[] = [
   {
@@ -153,9 +153,9 @@ const initialState: Store = {
   locale: "en-US",
   _hasHydrated: false,
   signSecret: "",
-  pin: "",
   pinTries: 0,
   pinVerified: false,
+  pinThreshold: 100,
 };
 
 function reducer(state: Store, action: Action): Store {
@@ -176,12 +176,12 @@ function reducer(state: Store, action: Action): Store {
       return { ...state, _hasHydrated: action.value };
     case "setSignSecret":
       return { ...state, signSecret: action.value };
-    case "setPin":
-      return { ...state, pin: action.value };
     case "setPinTries":
       return { ...state, pinTries: action.value };
     case "setPinVerified":
       return { ...state, pinVerified: action.value };
+    case "setPinThreshold":
+      return { ...state, pinThreshold: action.value };
     default:
       return state;
   }
@@ -204,7 +204,7 @@ export function AppStoreProvider({
       const raw = localStorage.getItem("ilfpos");
       if (raw) {
         const parsed = JSON.parse(raw);
-        console.log("[AppStore] Parsed persisted state", parsed);
+        console.log("[AppStore] Initial state loaded:", parsed);
         dispatch({
           type: "setPaymentPointer",
           value: parsed.paymentPointer || "https://ilp.dev/009" || "",
@@ -220,8 +220,11 @@ export function AppStoreProvider({
         dispatch({ type: "setError", value: parsed.error || null });
         dispatch({ type: "setLocale", value: parsed.locale || "en-US" });
         dispatch({ type: "setSignSecret", value: parsed.signSecret || "" });
-        dispatch({ type: "setPin", value: parsed.pin || "" });
         dispatch({ type: "setPinTries", value: parsed.pinTries || 0 });
+        dispatch({
+          type: "setPinThreshold",
+          value: parsed.pinThreshold || 100,
+        });
         // Do not hydrate pinVerified; always start false per session
         dispatch({ type: "setPinVerified", value: false });
       }
@@ -241,14 +244,14 @@ export function AppStoreProvider({
       // Serialize to a plain object for localStorage
       const toSave = {
         ...state,
-        // Ensure we do not persist pinVerified across sessions
+        // Ensure we do not persist pinVerified or pinTries across sessions
         pinVerified: false,
+        pinTries: 0,
         tx: state.tx.map((t) => ({
           ...t,
           ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts,
         })),
       };
-      console.log("[AppStore] Persisting state", toSave);
       localStorage.setItem("ilfpos", JSON.stringify(toSave));
     }
   }, [state]);
@@ -278,10 +281,11 @@ export function useAppStore() {
     setHasHydrated: (v: boolean) =>
       dispatch({ type: "setHasHydrated", value: v }),
     setSignSecret: (v: string) => dispatch({ type: "setSignSecret", value: v }),
-    setPin: (v: string) => dispatch({ type: "setPin", value: v }),
     setPinTries: (v: number) => dispatch({ type: "setPinTries", value: v }),
     setPinVerified: (v: boolean) =>
       dispatch({ type: "setPinVerified", value: v }),
+    setPinThreshold: (v: number) =>
+      dispatch({ type: "setPinThreshold", value: v }),
   };
 }
 

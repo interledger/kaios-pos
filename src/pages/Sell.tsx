@@ -25,7 +25,6 @@ export default function Sell(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log(e.key);
       if (e.repeat) return;
       if (e.key >= "0" && e.key <= "9") {
         onKey(e.key);

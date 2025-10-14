@@ -8,11 +8,7 @@ import { CheckIcon } from "@components/icons/Check";
 
 export default function Language(_props: { path?: string }) {
   const nav = route;
-  const {
-    paymentPointer,
-    locale,
-    setLocale,
-  } = useAppStore();
+  const { paymentPointer, locale, setLocale } = useAppStore();
   const [focused, setFocused] = useState(0);
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -20,7 +16,6 @@ export default function Language(_props: { path?: string }) {
     { code: "en-US", label: "English" },
     { code: "es-ES", label: "Español" },
     { code: "ro-RO", label: "Română" },
-
   ];
 
   function handleLocaleChange(newLocale: string) {
@@ -50,7 +45,10 @@ export default function Language(_props: { path?: string }) {
         setFocused((f) => (f + 1) % availableLanguages.length);
         e.preventDefault();
       } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-        setFocused((f) => (f - 1 + availableLanguages.length) % availableLanguages.length);
+        setFocused(
+          (f) =>
+            (f - 1 + availableLanguages.length) % availableLanguages.length,
+        );
         e.preventDefault();
       }
     };
@@ -77,7 +75,9 @@ export default function Language(_props: { path?: string }) {
                 <span data-l10n-id={`menu-${lang.code}`}></span>
               </div>
               <div className="flex-none items-center">
-                {locale === lang.code && <CheckIcon fill={`${i === focused ? "white" : "#007E50"}`} />}
+                {locale === lang.code && (
+                  <CheckIcon fill={`${i === focused ? "white" : "#007E50"}`} />
+                )}
               </div>
             </div>
           </button>

@@ -59,7 +59,10 @@ export default function Settings(_props: { path?: string }) {
           </div>
           <div className="flex flex-grow flex-col">
             <span data-l10n-id="menu-payment-pointer"></span>
-            <span data-l10n-id={`menu-payment-pointer-hint`} className="text-xl"></span>
+            <span
+              data-l10n-id={`menu-payment-pointer-hint`}
+              className="text-xl"
+            ></span>
           </div>
           <div className="mt-2">
             <ChevronIcon fill={`${0 === focused ? "white" : "black"}`} />
@@ -77,7 +80,10 @@ export default function Settings(_props: { path?: string }) {
           </div>
           <div className="flex flex-grow flex-col">
             <span data-l10n-id="menu-language"></span>
-            <span data-l10n-id={`menu-language-hint`} className="text-xl"></span>
+            <span
+              data-l10n-id={`menu-language-hint`}
+              className="text-xl"
+            ></span>
           </div>
           <div className="mt-2">
             <ChevronIcon fill={`${1 === focused ? "white" : "black"}`} />
@@ -95,7 +101,10 @@ export default function Settings(_props: { path?: string }) {
           </div>
           <div className="flex flex-grow flex-col">
             <span data-l10n-id="menu-setup-qr"></span>
-            <span data-l10n-id={`menu-setup-qr-hint`} className="text-xl"></span>
+            <span
+              data-l10n-id={`menu-setup-qr-hint`}
+              className="text-xl"
+            ></span>
           </div>
           <div className="mt-2">
             <ChevronIcon fill={`${2 === focused ? "white" : "black"}`} />

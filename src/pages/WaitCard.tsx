@@ -7,10 +7,10 @@ import {
   uint8ArrayToHexString,
   APDU_COMMANDS,
   hexStringToUint8Array,
-  extractRawDataFromAPDU,
 } from "@lib/generateAC";
 import {
   createPaymentServiceData,
+  createPosServicePayload,
   sendPaymentToPosService,
 } from "@lib/paymentService";
 import { useAppStore } from "@state/AppStore";
@@ -58,20 +58,32 @@ export default function WaitCard({
     paymentPointer,
     amount,
     signSecret,
+    pinTries,
     pinVerified,
+    pinThreshold,
     setPinVerified,
+    setPinTries,
   } = useAppStore();
   const [preparedPayment, setPreparedPayment] =
     useState<PaymentServiceData | null>(null);
+  const [cardResponse, setCardResponse] = useState<{
+    generateResponse: Uint8Array;
+    transactionData: any;
+    timestamp: number;
+  } | null>(null);
 
   // 0: waiting for card, 4: pin, 1: processing, 2: complete, 3: failed
   const [transactionStatus, setTransactionStatus] = useState(0);
 
   const sendAPDUCommands = useCallback(
-    async (tag: MozNFCTag): Promise<PaymentServiceData | null> => {
+    async (
+      tag: MozNFCTag,
+    ): Promise<{
+      generateResponse: Uint8Array;
+      transactionData: any;
+      timestamp: number;
+    } | null> => {
       try {
-        console.log("Starting APDU communication with tag...");
-
         if (tag.techList.indexOf("ISO-DEP") === -1) {
           console.error("Tag does not support ISO-DEP protocol");
           return null;
@@ -82,8 +94,6 @@ export default function WaitCard({
           console.error("Failed to select ISO-DEP technology");
           return null;
         }
-
-        console.log("Selected ISO-DEP technology, tech object:", tech);
 
         // Send SELECT PPSE command
         const selectPPSE = hexStringToUint8Array(APDU_COMMANDS.SELECT_PPSE);
@@ -99,44 +109,33 @@ export default function WaitCard({
 
         const generateAC = createGenerateACCommand(transactionData);
 
-        const rawData = extractRawDataFromAPDU(generateAC);
-
-        console.log("=== GENERATE AC COMMAND ===");
-        console.log(uint8ArrayToHexString(generateAC));
+        console.log("[Generate AC Command]", uint8ArrayToHexString(generateAC));
 
         const generateResponse = await tech.transceive(generateAC);
 
-        console.log("=== GENERATE AC RESPONSE ===");
-        console.log(uint8ArrayToHexString(generateResponse));
-
-        // Create payment json to be sent to pos service
-        const paymentData = createPaymentServiceData(
-          transactionData,
-          generateResponse,
-          rawData,
-          timestamp,
-        );
-        console.log("=== POS SERVICE payment JSON (prepared) ===");
-        console.log(JSON.stringify(paymentData, null, 2));
-
         console.log(
-          "APDU communication completed successfully; payment prepared",
+          "[Generate AC Response]",
+          uint8ArrayToHexString(generateResponse),
         );
-        return paymentData;
+
+        // Return card response data - don't create payload yet
+        return {
+          generateResponse,
+          transactionData,
+          timestamp,
+        };
       } catch (error) {
         console.error("Error during APDU communication:", error);
         setTransactionStatus(3); // failed
         return null;
       }
     },
-    [amount, paymentPointer, signSecret],
+    [amount, paymentPointer, signSecret, pinTries, pinThreshold],
   );
   const [readerState, setReaderState] = useState("lost");
   const handleTagFound = useCallback(
     (event: any) => {
-      console.log("event", event);
       const { tag } = event;
-      console.log("NfcDemo tag found:", tag);
 
       if (!tag) return;
 
@@ -148,10 +147,6 @@ export default function WaitCard({
         Array.isArray(tag.techList) &&
         tag.techList.indexOf("ISO-DEP") !== -1
       ) {
-        console.log("Tag supports ISO-DEP, starting APDU communication...");
-        console.log("Available technologies:", tag.techList);
-        console.log("Tag object methods:", Object.getOwnPropertyNames(tag));
-
         // prevent default so mozNfc doesn't immediately fire taglost
         if (typeof event.preventDefault === "function") {
           try {
@@ -159,47 +154,55 @@ export default function WaitCard({
           } catch {}
         }
 
-        // Decide PIN requirement by amount
-        const amountNumber = parseFloat(amount || "0");
-        const pinThreshold = 100; // threshold for requiring PIN
-        const requirePin = amountNumber > pinThreshold && !pinVerified;
-
         // Show processing while talking to the card
         setTransactionStatus(1);
 
         (async () => {
-          const paymentData = await sendAPDUCommands(tag as MozNFCTag);
-          if (!paymentData) return;
-          setPreparedPayment(paymentData);
+          // Step 1: Talk to card (always happens first)
+          const cardData = await sendAPDUCommands(tag as MozNFCTag);
+          if (!cardData) return;
+
+          // Step 2: Check if PIN is required
+          const amountNumber = parseFloat(amount || "0");
+          const requirePin = amountNumber > pinThreshold && !pinVerified;
 
           if (requirePin) {
+            // Step 3a: PIN required - store card response and show PIN entry
+            setCardResponse(cardData);
             setTransactionStatus(4);
           } else {
-            // Send directly to POS SERVICE
+            // Step 3b: No PIN required - create payload and send immediately
+            const posServicePayload = createPosServicePayload(
+              cardData.generateResponse,
+              cardData.transactionData,
+              undefined, // No PIN
+              undefined, // No PIN tries
+            );
+
+            const paymentData = createPaymentServiceData(
+              cardData.transactionData,
+              cardData.generateResponse,
+              posServicePayload,
+              cardData.timestamp,
+            );
+
             const posServiceResult = await sendPaymentToPosService(
               paymentData,
               signSecret,
             );
+
             if (posServiceResult.success) {
-              console.log("Payment sent to POS SERVICE!");
               playRingtone?.();
               setPinVerified(false);
-              setPreparedPayment(null);
+              setPinTries(0);
               setTransactionStatus(2);
             } else {
-              console.error(
-                "Failed to send payment to POS SERVIEC:",
-                posServiceResult.error,
-              );
+              setPinVerified(false);
+              setPinTries(0);
               setTransactionStatus(3);
             }
           }
         })();
-      } else {
-        console.log(
-          "Tag does not support required technologies:",
-          tag.techList,
-        );
       }
     },
     [
@@ -208,13 +211,16 @@ export default function WaitCard({
       sendAPDUCommands,
       amount,
       pinVerified,
+      pinThreshold,
       signSecret,
+      setPinVerified,
+      setPinTries,
+      setCardResponse,
     ],
   );
 
   const handleTagLost = useCallback(
     (event: any) => {
-      console.log("NfcDemo tag lost:", event);
       onTagLost?.(event);
     },
     [onTagLost],
@@ -239,10 +245,7 @@ export default function WaitCard({
         }
       };
     } catch (err) {
-      console.log("mozNfc not available or error:", err);
-      console.log("run later from here a cancel process function if needed");
-      // commenting out this for now.
-      //onCancel?.(); // Uncomment if we want to auto-cancel when NFC is not available
+      // NFC not available - could auto-cancel here if needed
     }
   }, [autoFocus, handleTagFound, handleTagLost, onCancel]);
 
@@ -269,34 +272,57 @@ export default function WaitCard({
       <Header title="wait-card" />
       {transactionStatus === 4 && (
         <PinComponent
-          onComplete={() => {
-            // Mark verified and send prepared payment to POS service
+          onComplete={(enteredPin, currentTries) => {
+            // Mark verified and create payload with PIN
             setPinVerified(true);
-            if (preparedPayment) {
+
+            if (cardResponse) {
               setTransactionStatus(1);
               (async () => {
+                // Now create the POS Service Payload WITH PIN
+                const posServicePayload = createPosServicePayload(
+                  cardResponse.generateResponse,
+                  cardResponse.transactionData,
+                  enteredPin, // Use the PIN directly from the callback!
+                  currentTries, // Use the current tries count from the callback!
+                );
+
+                const paymentData = createPaymentServiceData(
+                  cardResponse.transactionData,
+                  cardResponse.generateResponse,
+                  posServicePayload,
+                  cardResponse.timestamp,
+                );
+
+                // Send to POS SERVICE
                 const posServiceResult = await sendPaymentToPosService(
-                  preparedPayment,
+                  paymentData,
                   signSecret,
                 );
+
                 if (posServiceResult.success) {
                   playRingtone?.();
                   setPinVerified(false);
-                  setPreparedPayment(null);
+                  setPinTries(0);
+                  setCardResponse(null);
                   setTransactionStatus(2);
                 } else {
-                  console.error(
-                    "Failed to send payment to POS service:",
-                    posServiceResult.error,
-                  );
+                  setPinVerified(false);
+                  setPinTries(0);
+                  setCardResponse(null);
                   setTransactionStatus(3);
                 }
               })();
             } else {
+              setPinVerified(false);
+              setPinTries(0);
               setTransactionStatus(3);
             }
           }}
           onCancel={() => {
+            setPinVerified(false);
+            setPinTries(0);
+            setCardResponse(null);
             setTransactionStatus(3);
           }}
         />

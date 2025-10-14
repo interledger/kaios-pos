@@ -28,7 +28,7 @@ declare global {
     /** Current language info */
     language: {
       code: string;
-      direction?: 'ltr' | 'rtl';
+      direction?: "ltr" | "rtl";
       name?: string;
       /** Set language code (readonly in API, but present) */
     };
