@@ -8,8 +8,14 @@ import { Header } from "@components/Header";
 
 export default function PaymentPointer(_props: { path?: string }) {
   const nav = route;
-  const { error, setError, currency, setCurrency, paymentPointer, setPaymentPointer } =
-    useAppStore();
+  const {
+    error,
+    setError,
+    currency,
+    setCurrency,
+    paymentPointer,
+    setPaymentPointer,
+  } = useAppStore();
   const [paymentPointerInput, setPaymentPointerInput] =
     useState(paymentPointer);
   const [focused, setFocused] = useState(0); // 0 = input, 1 = delete button
@@ -47,7 +53,9 @@ export default function PaymentPointer(_props: { path?: string }) {
   return (
     <section className="space-y-2">
       <Header />
-      <div className={`flex flex-col p-4 mt-4 ${0 === focused ? "active-item-bg" : ""}`}>
+      <div
+        className={`flex flex-col p-4 mt-4 ${0 === focused ? "active-item-bg" : ""}`}
+      >
         <span className="">Payment pointer</span>
         <div className="flex flex-row mt-2">
           <input

@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@interledger/open-payments": "^7.1.3",
+    "@interledger/tlv-kit": "^1.0.2",
     "@preact/preset-vite": "^2.10.2",
     "jsqr": "^1.4.0",
     "kaios-gaia-l10n": "^0.0.1",

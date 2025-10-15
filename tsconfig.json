@@ -2,14 +2,7 @@
   "compilerOptions": {
     "target": "ES5",
     "useDefineForClassFields": true,
-    "lib": [
-      "es5",
-      "es6",
-      "es2017",
-      "dom",
-      "es2015.promise",
-      "scripthost"
-    ],
+    "lib": ["es5", "es6", "es2017", "dom", "es2015.promise", "scripthost"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
@@ -21,30 +14,14 @@
     "strict": true,
     "baseUrl": "./",
     "paths": {
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@pages/*": [
-        "src/pages/*"
-      ],
-      "@routes/*": [
-        "src/routes/*"
-      ],
-      "@state/*": [
-        "src/state/*"
-      ],
-      "@services/*": [
-        "src/services/*"
-      ],
-      "@lib/*": [
-        "src/lib/*"
-      ],
-      "@constants/*": [
-        "src/constants/*"
-      ]
+      "@components/*": ["src/components/*"],
+      "@pages/*": ["src/pages/*"],
+      "@routes/*": ["src/routes/*"],
+      "@state/*": ["src/state/*"],
+      "@services/*": ["src/services/*"],
+      "@lib/*": ["src/lib/*"],
+      "@constants/*": ["src/constants/*"]
     }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

@@ -11,7 +11,7 @@
   --color-gs20: #cccccc;
   --color-gs10: #e6e6e6;
   --color-gs00: #ffffff;
-  --color-app-bg: #D9D9D9;
+  --color-app-bg: #d9d9d9;
   --color-field-bg: #e6e6e6;
   --highlight-color: #00ae57;
 
@@ -63,36 +63,35 @@
 }
 
 @font-face {
-  font-family: 'gaia-icons';
-  src: url('/assets/fonts/gaia-icons.ttf') format('truetype');
+  font-family: "gaia-icons";
+  src: url("/assets/fonts/gaia-icons.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Titillium Web';
-  src: url('/assets/fonts/TitilliumWeb-Regular.ttf') format('truetype');
+  font-family: "Titillium Web";
+  src: url("/assets/fonts/TitilliumWeb-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Titillium Web';
-  src: url('/assets/fonts/TitilliumWeb-Bold.ttf') format('truetype');
+  font-family: "Titillium Web";
+  src: url("/assets/fonts/TitilliumWeb-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Titillium Web';
-  src: url('/assets/fonts/TitilliumWeb-SemiBold.ttf') format('truetype');
+  font-family: "Titillium Web";
+  src: url("/assets/fonts/TitilliumWeb-SemiBold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
-
 
 html,
 body,
@@ -104,13 +103,13 @@ body,
   font-size: 10px;
   outline: none;
 
-  font-family: 'Titillium Web', Arial, sans-serif;
+  font-family: "Titillium Web", Arial, sans-serif;
   background-color: var(--color-app-bg);
   color: #000;
 }
 
 button {
-  font-family: 'Titillium Web', Arial, sans-serif;
+  font-family: "Titillium Web", Arial, sans-serif;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -202,7 +201,7 @@ input[type="date"]::-moz-focus-inner {
 }
 
 .bg-green-500 {
-  background: #007E50;
+  background: #007e50;
 }
 
 .bg-emerald-700 {
@@ -549,11 +548,11 @@ input[type="date"]::-moz-focus-inner {
 }
 
 .text-green-50 {
-  color: #D6FFF0;
+  color: #d6fff0;
 }
 
 .text-green-500 {
-  color: #007E50;
+  color: #007e50;
 }
 
 .w-45 {
@@ -724,7 +723,6 @@ input[type="date"]::-moz-focus-inner {
   height: 90vh;
 }
 
-
 .opacity-80 {
   opacity: 0.8;
 }
@@ -757,7 +755,7 @@ input[type="date"]::-moz-focus-inner {
 
 [data-icon]:before,
 .ligature-icons {
-  font-family: 'gaia-icons';
+  font-family: "gaia-icons";
   content: attr(data-icon);
   display: inline-block;
   font-weight: 500;

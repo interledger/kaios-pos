@@ -1,38 +1,42 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState, useCallback } from "preact/hooks";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
-
-const PIN_LENGTH = 4;
+import { PIN_LENGTH, MAX_PIN_ATTEMPTS } from "@constants/pin";
 
 type PinComponentProps = {
-  onComplete?: () => void;
+  onComplete?: (enteredPin: string, currentTries: number) => void;
   onCancel?: () => void;
 };
 
 export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
   const nav = route;
-  const { pin, setPin, pinTries, setPinTries, setPinVerified } = useAppStore();
+  const { pinTries, setPinTries, setPinVerified } = useAppStore();
   const [localPin, setLocalPin] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     setPinTries(0);
-    setPin("");
     setPinVerified(false);
     setLocalPin("");
     setError("");
   }, []);
 
-  const onKey = (key: string) => {
-    if (/^\d$/.test(key)) {
-      if (localPin.length < PIN_LENGTH) setLocalPin(localPin + key);
-    } else if (key === "Backspace" || key === "⌫") {
-      setLocalPin(localPin.slice(0, -1));
-    } else if (key.toLowerCase() === "c") {
-      setLocalPin("");
-      setError("");
-    }
-  };
+  const onKey = useCallback(
+    (key: string) => {
+      // Block input if max attempts exceeded
+      if (pinTries >= MAX_PIN_ATTEMPTS) return;
+
+      if (/^\d$/.test(key)) {
+        if (localPin.length < PIN_LENGTH) setLocalPin(localPin + key);
+      } else if (key === "Backspace" || key === "⌫") {
+        setLocalPin(localPin.slice(0, -1));
+      } else if (key.toLowerCase() === "c") {
+        setLocalPin("");
+        setError("");
+      }
+    },
+    [localPin, pinTries],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -52,18 +56,31 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
         e.preventDefault();
       } else if (e.key === "Enter") {
         if (localPin.length === PIN_LENGTH) {
-          setPin(localPin);
-          setPinTries(pinTries + 1);
+          const newTries = pinTries + 1;
+          setPinTries(newTries);
           if (localPin === "1234") {
-            setPin(localPin);
             setError("");
             setPinVerified(true);
-            if (onComplete) onComplete();
+            if (onComplete) onComplete(localPin, newTries);
             else nav("/menu");
           } else {
-            setError("Invalid PIN");
-            setPin("");
-            setPinVerified(false);
+            // Check if max attempts exceeded
+            if (newTries >= MAX_PIN_ATTEMPTS) {
+              setError(
+                `Maximum PIN attempts (${MAX_PIN_ATTEMPTS}) exceeded. Transaction cancelled.`,
+              );
+              setPinVerified(false);
+              // Auto-cancel after a short delay
+              setTimeout(() => {
+                if (onCancel) onCancel();
+                else nav("/menu");
+              }, 4000);
+            } else {
+              setError(
+                `Invalid PIN (${newTries}/${MAX_PIN_ATTEMPTS} attempts)`,
+              );
+              setPinVerified(false);
+            }
           }
           setLocalPin("");
         }
@@ -72,7 +89,16 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [localPin, nav, onCancel, onComplete, pinTries, setPin, setPinTries]);
+  }, [
+    localPin,
+    nav,
+    onCancel,
+    onComplete,
+    onKey,
+    pinTries,
+    setPinTries,
+    setPinVerified,
+  ]);
 
   return (
     <div className="mt-4 bg-white px-4 py-6 text-center">
@@ -85,7 +111,9 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
           );
         })}
       </div>
-      <div className="mt-2 text-sm text-gray-600">Tries: {pinTries}</div>
+      <div className="mt-2 text-sm text-gray-600">
+        Tries left: {MAX_PIN_ATTEMPTS - pinTries}
+      </div>
       {error && <div className="mt-2 text-red-600">{error}</div>}
     </div>
   );

@@ -65,25 +65,31 @@ export default function Menu(_props: { path?: string }) {
         >
           <div className="flex flex-row">
             <div className="flex mx-4 items-center">
-              {it.key === 'sell' && <SellIcon fill={`${i === focused ? "white" : "#10b981"}`} />}
-              {it.key === 'balance' && <BalanceIcon fill={`${i === focused ? "white" : "#815181"}`} />}
-              {it.key === 'eod' && <EodIcon fill={`${i === focused ? "white" : "#FF7A7F"}`} />}
+              {it.key === "sell" && (
+                <SellIcon fill={`${i === focused ? "white" : "#10b981"}`} />
+              )}
+              {it.key === "balance" && (
+                <BalanceIcon fill={`${i === focused ? "white" : "#815181"}`} />
+              )}
+              {it.key === "eod" && (
+                <EodIcon fill={`${i === focused ? "white" : "#FF7A7F"}`} />
+              )}
             </div>
             <div className="flex flex-grow flex-col">
               <span data-l10n-id={`menu-${it.key}`}></span>
-              <span data-l10n-id={`menu-${it.key}-hint`} className="text-xl"></span>
+              <span
+                data-l10n-id={`menu-${it.key}-hint`}
+                className="text-xl"
+              ></span>
             </div>
             <div className="flex-none items-center">
               <ChevronIcon fill={`${i === focused ? "white" : "black"}`} />
             </div>
           </div>
         </button>
-      ))
-      }
+      ))}
       <div className="w-15 h-15" />
-      <Footer
-        backBtn={false}
-      />
-    </section >
+      <Footer backBtn={false} />
+    </section>
   );
 }

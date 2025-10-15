@@ -27,5 +27,5 @@ render(
   <AppStoreProvider>
     <AppRouter />
   </AppStoreProvider>,
-  document.getElementById("root")!
+  document.getElementById("root")!,
 );

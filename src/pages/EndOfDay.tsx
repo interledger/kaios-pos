@@ -45,26 +45,37 @@ export default function EndOfDay(_props: { path?: string }) {
         className=" mt-4 p-4 bg-white focus:ring-2 focus:ring-emerald-400"
       >
         <label className="flex flex-row gap-4 justify-between">
-          <div className="flex flex-col" >
+          <div className="flex flex-col">
             <span data-l10n-id="select-date" className="text-2xl mt-2"></span>
             <input
               id="date-input"
               type="date"
               className="mt-2 mb-2 font-semibold border-none py-3"
               value={reportDate}
-              onChange={(e) => setReportDate((e.target as HTMLInputElement).value)}
+              onChange={(e) =>
+                setReportDate((e.target as HTMLInputElement).value)
+              }
             />
           </div>
           <div className="mt-4 mb-4 p-6 text-center">
-            <img src="/assets/icons/calendar.png" className="mx-auto w-12 h-12" />
+            <img
+              src="/assets/icons/calendar.png"
+              className="mx-auto w-12 h-12"
+            />
           </div>
         </label>
       </div>
-      <div tabIndex={1 === focused ? 0 : -1} className=" mt-4 p-4 rounded-xl bg-white focus:ring-2 focus:ring-emerald-400">
+      <div
+        tabIndex={1 === focused ? 0 : -1}
+        className=" mt-4 p-4 rounded-xl bg-white focus:ring-2 focus:ring-emerald-400"
+      >
         <div data-l10n-id="num-transactions" className="text-xl"></div>
         <div className="mt-1 text-lg font-semibold">{String(count)}</div>
       </div>
-      <div tabIndex={1 === focused ? 0 : -1} className=" mt-4 p-4 rounded-xl bg-white focus:ring-2 focus:ring-emerald-400">
+      <div
+        tabIndex={1 === focused ? 0 : -1}
+        className=" mt-4 p-4 rounded-xl bg-white focus:ring-2 focus:ring-emerald-400"
+      >
         <div data-l10n-id="sum-transactions" className="text-xxl"></div>
         <div className="mt-1 text-lg font-semibold">
           {formatCurrency(sum, currency)}
@@ -81,14 +92,12 @@ export default function EndOfDay(_props: { path?: string }) {
               <div className="font-semibold text-xl text-green-500">
                 {formatCurrency(t.amount, currency)}
               </div>
-              <div className="">
-                {t.ts.toLocaleString?.() || String(t.ts)}
-              </div>
-              <div className="">
-                {t.id || String(t.id)}
-              </div>
+              <div className="">{t.ts.toLocaleString?.() || String(t.ts)}</div>
+              <div className="">{t.id || String(t.id)}</div>
               <div className=" text-green-500">
-                <span data-l10n-id="transaction-fee">{formatCurrency(t.fee, currency)}</span>
+                <span data-l10n-id="transaction-fee">
+                  {formatCurrency(t.fee, currency)}
+                </span>
               </div>
             </div>
           </li>

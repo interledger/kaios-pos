@@ -19,14 +19,12 @@ export default function Setup(_props: { path?: string }) {
   }
   const initialPointer = useRef(paymentPointer);
 
-  const [paymentPointerInput, setPaymentPointerInput] = useState("https://ilp.link/adi");
+  const [paymentPointerInput, setPaymentPointerInput] = useState(
+    "https://ilp.link/adi",
+  );
 
   useEffect(() => {
     setError("");
-    console.log(
-      "Setup mounted with pp: ",
-      (initialPointer.current, initialPointer.current.trim().length),
-    );
     if (initialPointer.current && initialPointer.current.trim().length > 0) {
       nav("/menu");
     }
@@ -53,7 +51,10 @@ export default function Setup(_props: { path?: string }) {
   }, []);
   return (
     <section className="space-y-6">
-      <h2 data-l10n-id="wallet-setup" className="text-3xl text-center font-extrabold text-black mt-6"></h2>
+      <h2
+        data-l10n-id="wallet-setup"
+        className="text-3xl text-center font-extrabold text-black mt-6"
+      ></h2>
       <label className="flex flex-col border-green bg-white py-4 px-4 focus:ring-2 focus:ring-emerald-400">
         <span className="text-2xl mt-2" data-l10n-id="payment-pointer"></span>
         <input
@@ -77,7 +78,6 @@ export default function Setup(_props: { path?: string }) {
         />
         {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
       </label>
-
     </section>
   );
 }
