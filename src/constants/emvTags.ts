@@ -20,4 +20,13 @@ export const EMV_TAGS = {
   // PIN Tags
   PIN_TRY_COUNTER: "9F17", // PIN Try Counter (1 byte)
   TRANSACTION_PIN_DATA: "99", // Transaction PIN Data (8 bytes)
+
+  // GPO Tags
+  APPLICATION_TRANSACTION_COUNTER: "9F36", // Application Transaction Counter (ATC) (2 bytes)
+  APPLICATION_INTERCHANGE_PROFILE: "82", // Application Interchange Profile (AIP)
+  APPLICATION_FILE_LOCATOR: "94", // Application File Locator (AFL)
+  CDOL1: "8C", // Card Data Object List 1
+
+  // READ RECORD Tags
+  SENDER_WALLET_ADDRESS: "C1", // Sender Wallet Address (variable length)
 } as const;

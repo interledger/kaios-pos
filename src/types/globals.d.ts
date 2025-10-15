@@ -6,6 +6,13 @@ declare global {
     testSession?: any;
     testChannel?: any;
   }
+
+  // Webpack injects process.env at build time
+  var process: {
+    env: {
+      NODE_ENV: "development" | "production";
+    };
+  };
   // interface Navigator {
   //   seManager?: any;
   //   mozNfc?: {

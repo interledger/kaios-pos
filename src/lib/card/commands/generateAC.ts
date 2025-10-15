@@ -1,3 +1,13 @@
+import { hexToUint8Array } from "@interledger/tlv-kit";
+import {
+  createBCDAmount,
+  currencyCodeToBytes,
+  dateStringToBytes,
+  timeStringToBytes,
+  numberTo4Bytes,
+  numberTo2Bytes,
+} from "../utils";
+
 export interface TransactionData {
   applicationTransactionCounter: number; // ATC - 2 bytes
   amount: number;
@@ -10,95 +20,22 @@ export interface TransactionData {
   receiverWalletAddress: string;
 }
 
-export const APDU_COMMANDS = {
-  SELECT_PPSE: "00A404000AA00000015103010C0601",
-  GENERATE_AC: "80AEC100", // Will be completed with raw data
-} as const;
+// GENERATE AC APDU command header (will be completed with raw data)
+const GENERATE_AC_APDU_HEADER = "80AEC100";
 
-export function hexStringToUint8Array(hexString: string): Uint8Array {
-  const bytes = [];
-  for (let i = 0; i < hexString.length; i += 2) {
-    bytes.push(parseInt(hexString.substr(i, 2), 16));
-  }
-  return new Uint8Array(bytes);
-}
-
-export function uint8ArrayToHexString(uint8Array: Uint8Array): string {
-  return Array.from(uint8Array)
-    .map((byte) => {
-      const hex = byte.toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    })
-    .join(" ");
-}
-
-// Convert amount to BCD format (12 digits, 6 bytes)
-export function createBCDAmount(amount: number): Uint8Array {
-  const amountStr = Math.floor(amount * 100)
-    .toString()
-    .padStart(12, "0");
-
-  const bcd = new Uint8Array(6);
-
-  // Convert each pair of decimal digits to BCD
-  for (let i = 0; i < 6; i++) {
-    const pair = amountStr.substr(i * 2, 2);
-    const tens = parseInt(pair[0], 10);
-    const ones = parseInt(pair[1], 10);
-    bcd[i] = (tens << 4) | ones; // BCD encoding: tens in high nibble, ones in low nibble
-  }
-
-  return bcd;
-}
-
-export function createDate(date: Date): Uint8Array {
-  const year = date.getFullYear() % 100;
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-
-  return new Uint8Array([year, month, day]);
-}
-
-export function currencyCodeToBytes(_currencyCode: string): Uint8Array {
-  // Hardcoded to EUR for now
-  return new Uint8Array([0x09, 0x78]);
-}
-
-export function numberTo4Bytes(value: number): Uint8Array {
-  const bytes = new Uint8Array(4);
-  bytes[0] = (value >> 24) & 0xff;
-  bytes[1] = (value >> 16) & 0xff;
-  bytes[2] = (value >> 8) & 0xff;
-  bytes[3] = value & 0xff;
-  return bytes;
-}
-
-export function dateStringToBytes(dateStr: string): Uint8Array {
-  const year = parseInt(dateStr.substr(0, 2), 10);
-  const month = parseInt(dateStr.substr(2, 2), 10);
-  const day = parseInt(dateStr.substr(4, 2), 10);
-  return new Uint8Array([year, month, day]);
-}
-
-// Helper function to convert time string to bytes (HHMMSS format)
-export function timeStringToBytes(timeStr: string): Uint8Array {
-  const hour = parseInt(timeStr.substr(0, 2), 10);
-  const minute = parseInt(timeStr.substr(2, 2), 10);
-  const second = parseInt(timeStr.substr(4, 2), 10);
-  return new Uint8Array([hour, minute, second]);
-}
-
-// Helper function to convert ATC to 2-byte Uint8Array
-export function numberTo2Bytes(value: number): Uint8Array {
-  const bytes = new Uint8Array(2);
-  bytes[0] = (value >> 8) & 0xff;
-  bytes[1] = value & 0xff;
-  return bytes;
-}
-
+/**
+ * Creates transaction data for a payment
+ * @param amount - Amount in cents
+ * @param receiverWalletAddress - The receiver's wallet address
+ * @param applicationTransactionCounter - The ATC from the card
+ * @param senderWalletAddress - The sender's wallet address
+ * @returns TransactionData object
+ */
 export function createTransactionData(
   amount: number,
   receiverWalletAddress: string,
+  applicationTransactionCounter: number,
+  senderWalletAddress: string,
 ): TransactionData {
   const now = new Date();
   const year = now.getFullYear() % 100;
@@ -111,10 +48,6 @@ export function createTransactionData(
   // Generate random 4-byte unpredictable number
   const unpredictableNumber = Math.floor(Math.random() * 0x100000000); // 0 to 0xffffffff
 
-  // ATC (Application Transaction Counter) - hardcoded for now
-  // In the future, this will be retrieved from the card via READ RECORD APDU command
-  const applicationTransactionCounter = 0x0001; // Hardcoded to 1 for now
-
   return {
     applicationTransactionCounter,
     amount,
@@ -123,11 +56,16 @@ export function createTransactionData(
     date: `${year.toString().padStart(2, "0")}${month.toString().padStart(2, "0")}${day.toString().padStart(2, "0")}`,
     time: `${hour.toString().padStart(2, "0")}${minute.toString().padStart(2, "0")}${second.toString().padStart(2, "0")}`,
     unpredictableNumber: unpredictableNumber,
-    senderWalletAddress: "https://wallet.example/alice",
+    senderWalletAddress: senderWalletAddress,
     receiverWalletAddress: receiverWalletAddress,
   };
 }
 
+/**
+ * Creates the GENERATE AC APDU command
+ * @param transactionData - The transaction data
+ * @returns The GENERATE AC command as Uint8Array
+ */
 export function createGenerateACCommand(
   transactionData: TransactionData,
 ): Uint8Array {
@@ -184,7 +122,7 @@ export function createGenerateACCommand(
     offset += field.length;
   }
 
-  const commandHeader = hexStringToUint8Array(APDU_COMMANDS.GENERATE_AC);
+  const commandHeader = hexToUint8Array(GENERATE_AC_APDU_HEADER);
   const lc = new Uint8Array([rawData.length]); // Length of data
   const le = new Uint8Array([0x00]); // Expected response length
 
@@ -204,7 +142,11 @@ export function createGenerateACCommand(
   return completeCommand;
 }
 
-// Helper function to extract raw data from APDU command
+/**
+ * Helper function to extract raw data from APDU command
+ * @param apduCommand - The complete APDU command
+ * @returns The raw data portion of the command
+ */
 export function extractRawDataFromAPDU(apduCommand: Uint8Array): Uint8Array {
   // APDU structure: [CLA, INS, P1, P2, LC, DATA..., LE]
   // Raw data starts after the LC byte (5th byte) and excludes the LE byte (last byte)

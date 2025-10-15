@@ -20,7 +20,9 @@
       "@state/*": ["src/state/*"],
       "@services/*": ["src/services/*"],
       "@lib/*": ["src/lib/*"],
-      "@constants/*": ["src/constants/*"]
+      "@constants/*": ["src/constants/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@config": ["src/config/index.ts"]
     }
   },
   "include": ["src"]

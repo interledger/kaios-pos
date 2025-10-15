@@ -39,6 +39,8 @@ module.exports = {
       "@lib": resolveApp("./src/lib/"),
       "@services": resolveApp("./src/services/"),
       "@constants": resolveApp("./src/constants/"),
+      "@hooks": resolveApp("./src/hooks/"),
+      "@config": resolveApp("./src/config/index.ts"),
     },
   },
   optimization: {

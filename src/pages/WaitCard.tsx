@@ -1,41 +1,16 @@
 // WaitCard.tsx
-import { useEffect, useRef, useCallback, useState } from "preact/hooks";
-import { route } from "preact-router";
-import {
-  createTransactionData,
-  createGenerateACCommand,
-  uint8ArrayToHexString,
-  APDU_COMMANDS,
-  hexStringToUint8Array,
-} from "@lib/generateAC";
-import {
-  createPaymentServiceData,
-  createPosServicePayload,
-  sendPaymentToPosService,
-} from "@lib/paymentService";
-import { useAppStore } from "@state/AppStore";
-import { playRingtone } from "@lib/commonHelper";
-import { formatCurrency } from "@lib/currency";
-import { Header } from "@components/Header";
 import { Footer } from "@components/Footer";
+import { Header } from "@components/Header";
 import { PinComponent } from "@components/PinComponent";
-import { statuses } from "@constants/statuses";
-import { TransactionStatus } from "@components/TransactionStatus";
-import type { PaymentServiceData } from "@lib/paymentService";
-
-interface MozNFCTag {
-  id: Uint8Array;
-  techList: string[];
-  isLost: boolean;
-  selectTech: (techType: string) => any;
-}
-
-interface MozNFCTech {
-  transceive: (data: Uint8Array) => Promise<Uint8Array>;
-}
+import { TransactionStatus as TransactionStatusComponent } from "@components/TransactionStatus";
+import { TransactionStatus } from "@constants/statuses";
+import { useCardPayment } from "@hooks/useCardPayment";
+import { useNfcReader } from "@hooks/useNfcReader";
+import { useAppStore } from "@state/AppStore";
+import { route } from "preact-router";
+import { useCallback, useEffect, useRef } from "preact/hooks";
 
 type WaitCardProps = {
-  decrement?: (tag: any) => void;
   playRingtone?: () => void;
   onTagLost?: (e: any) => void;
   onCancel?: () => void;
@@ -44,11 +19,8 @@ type WaitCardProps = {
 };
 
 export default function WaitCard({
-  path,
-  decrement,
   playRingtone,
   onTagLost,
-  onCancel,
   autoFocus = true,
   className = "",
 }: { path?: string } & WaitCardProps) {
@@ -58,196 +30,35 @@ export default function WaitCard({
     paymentPointer,
     amount,
     signSecret,
-    pinTries,
     pinVerified,
     pinThreshold,
     setPinVerified,
     setPinTries,
   } = useAppStore();
-  const [preparedPayment, setPreparedPayment] =
-    useState<PaymentServiceData | null>(null);
-  const [cardResponse, setCardResponse] = useState<{
-    generateResponse: Uint8Array;
-    transactionData: any;
-    timestamp: number;
-  } | null>(null);
 
-  // 0: waiting for card, 4: pin, 1: processing, 2: complete, 3: failed
-  const [transactionStatus, setTransactionStatus] = useState(0);
+  const handleResetPin = useCallback(() => {
+    setPinVerified(false);
+    setPinTries(0);
+  }, [setPinVerified, setPinTries]);
 
-  const sendAPDUCommands = useCallback(
-    async (
-      tag: MozNFCTag,
-    ): Promise<{
-      generateResponse: Uint8Array;
-      transactionData: any;
-      timestamp: number;
-    } | null> => {
-      try {
-        if (tag.techList.indexOf("ISO-DEP") === -1) {
-          console.error("Tag does not support ISO-DEP protocol");
-          return null;
-        }
-
-        const tech = tag.selectTech("ISO-DEP");
-        if (!tech) {
-          console.error("Failed to select ISO-DEP technology");
-          return null;
-        }
-
-        // Send SELECT PPSE command
-        const selectPPSE = hexStringToUint8Array(APDU_COMMANDS.SELECT_PPSE);
-        await tech.transceive(selectPPSE);
-
-        const now = new Date();
-        const timestamp = now.getTime(); // UTC timestamp
-        const amountInCents = Math.floor(parseFloat(amount || "0") * 100);
-        const transactionData = createTransactionData(
-          amountInCents,
-          paymentPointer,
-        );
-
-        const generateAC = createGenerateACCommand(transactionData);
-
-        console.log("[Generate AC Command]", uint8ArrayToHexString(generateAC));
-
-        const generateResponse = await tech.transceive(generateAC);
-
-        console.log(
-          "[Generate AC Response]",
-          uint8ArrayToHexString(generateResponse),
-        );
-
-        // Return card response data - don't create payload yet
-        return {
-          generateResponse,
-          transactionData,
-          timestamp,
-        };
-      } catch (error) {
-        console.error("Error during APDU communication:", error);
-        setTransactionStatus(3); // failed
-        return null;
-      }
-    },
-    [amount, paymentPointer, signSecret, pinTries, pinThreshold],
-  );
-  const [readerState, setReaderState] = useState("lost");
-  const handleTagFound = useCallback(
-    (event: any) => {
-      const { tag } = event;
-
-      if (!tag) return;
-
-      // UX feedback
-      if ("vibrate" in navigator) navigator.vibrate?.(100);
-      playRingtone?.();
-
-      if (
-        Array.isArray(tag.techList) &&
-        tag.techList.indexOf("ISO-DEP") !== -1
-      ) {
-        // prevent default so mozNfc doesn't immediately fire taglost
-        if (typeof event.preventDefault === "function") {
-          try {
-            event.preventDefault();
-          } catch {}
-        }
-
-        // Show processing while talking to the card
-        setTransactionStatus(1);
-
-        (async () => {
-          // Step 1: Talk to card (always happens first)
-          const cardData = await sendAPDUCommands(tag as MozNFCTag);
-          if (!cardData) return;
-
-          // Step 2: Check if PIN is required
-          const amountNumber = parseFloat(amount || "0");
-          const requirePin = amountNumber > pinThreshold && !pinVerified;
-
-          if (requirePin) {
-            // Step 3a: PIN required - store card response and show PIN entry
-            setCardResponse(cardData);
-            setTransactionStatus(4);
-          } else {
-            // Step 3b: No PIN required - create payload and send immediately
-            const posServicePayload = createPosServicePayload(
-              cardData.generateResponse,
-              cardData.transactionData,
-              undefined, // No PIN
-              undefined, // No PIN tries
-            );
-
-            const paymentData = createPaymentServiceData(
-              cardData.transactionData,
-              cardData.generateResponse,
-              posServicePayload,
-              cardData.timestamp,
-            );
-
-            const posServiceResult = await sendPaymentToPosService(
-              paymentData,
-              signSecret,
-            );
-
-            if (posServiceResult.success) {
-              playRingtone?.();
-              setPinVerified(false);
-              setPinTries(0);
-              setTransactionStatus(2);
-            } else {
-              setPinVerified(false);
-              setPinTries(0);
-              setTransactionStatus(3);
-            }
-          }
-        })();
-      }
-    },
-    [
-      decrement,
-      playRingtone,
-      sendAPDUCommands,
+  const { transactionStatus, processCard, handlePinComplete, handlePinCancel } =
+    useCardPayment({
       amount,
-      pinVerified,
-      pinThreshold,
+      paymentPointer,
       signSecret,
-      setPinVerified,
-      setPinTries,
-      setCardResponse,
-    ],
-  );
+      pinThreshold,
+      pinVerified,
+      onPlayRingtone: playRingtone,
+      onResetPin: handleResetPin,
+    });
 
-  const handleTagLost = useCallback(
-    (event: any) => {
-      onTagLost?.(event);
-    },
-    [onTagLost],
-  );
-
-  useEffect(() => {
-    if (autoFocus) {
-      const panel = panelRef.current;
-      setTimeout(() => panel?.focus(), 0);
-    }
-
-    let nfc: typeof window.navigator.mozNfc | undefined;
-    try {
-      nfc = window.navigator.mozNfc;
-      if (!nfc) throw new Error("mozNfc not available");
-      nfc.ontagfound = handleTagFound;
-      nfc.ontaglost = handleTagLost;
-      return () => {
-        if (nfc) {
-          nfc.ontagfound = null;
-          nfc.ontaglost = null;
-        }
-      };
-    } catch (err) {
-      // NFC not available - could auto-cancel here if needed
-    }
-  }, [autoFocus, handleTagFound, handleTagLost, onCancel]);
+  useNfcReader({
+    onTagFound: processCard,
+    onTagLost,
+    onPlayRingtone: playRingtone,
+    autoFocus,
+    panelRef,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -270,65 +81,14 @@ export default function WaitCard({
   return (
     <div ref={panelRef} tabIndex={-1} className={`${className}`}>
       <Header title="wait-card" />
-      {transactionStatus === 4 && (
+      {transactionStatus === TransactionStatus.PIN_ENTRY && (
         <PinComponent
-          onComplete={(enteredPin, currentTries) => {
-            // Mark verified and create payload with PIN
-            setPinVerified(true);
-
-            if (cardResponse) {
-              setTransactionStatus(1);
-              (async () => {
-                // Now create the POS Service Payload WITH PIN
-                const posServicePayload = createPosServicePayload(
-                  cardResponse.generateResponse,
-                  cardResponse.transactionData,
-                  enteredPin, // Use the PIN directly from the callback!
-                  currentTries, // Use the current tries count from the callback!
-                );
-
-                const paymentData = createPaymentServiceData(
-                  cardResponse.transactionData,
-                  cardResponse.generateResponse,
-                  posServicePayload,
-                  cardResponse.timestamp,
-                );
-
-                // Send to POS SERVICE
-                const posServiceResult = await sendPaymentToPosService(
-                  paymentData,
-                  signSecret,
-                );
-
-                if (posServiceResult.success) {
-                  playRingtone?.();
-                  setPinVerified(false);
-                  setPinTries(0);
-                  setCardResponse(null);
-                  setTransactionStatus(2);
-                } else {
-                  setPinVerified(false);
-                  setPinTries(0);
-                  setCardResponse(null);
-                  setTransactionStatus(3);
-                }
-              })();
-            } else {
-              setPinVerified(false);
-              setPinTries(0);
-              setTransactionStatus(3);
-            }
-          }}
-          onCancel={() => {
-            setPinVerified(false);
-            setPinTries(0);
-            setCardResponse(null);
-            setTransactionStatus(3);
-          }}
+          onComplete={handlePinComplete}
+          onCancel={handlePinCancel}
         />
       )}
-      {transactionStatus < 4 && (
-        <TransactionStatus
+      {transactionStatus !== TransactionStatus.PIN_ENTRY && (
+        <TransactionStatusComponent
           transactionStatus={transactionStatus}
           amount={amount}
           currency={currency}

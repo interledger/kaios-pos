@@ -1,12 +1,11 @@
-import type { TransactionData } from "./generateAC";
+import type { TransactionData } from "./card/commands/generateAC";
 import {
-  numberTo2Bytes,
   numberTo4Bytes,
   createBCDAmount,
   dateStringToBytes,
   timeStringToBytes,
   currencyCodeToBytes,
-} from "./generateAC";
+} from "./card/utils";
 import {
   TLVParser,
   TLV,
@@ -15,11 +14,11 @@ import {
   hexToUint8Array,
 } from "@interledger/tlv-kit";
 import { EMV_TAGS } from "@constants/emvTags";
-import { MAX_PIN_ATTEMPTS } from "@constants/pin";
+import { config } from "@config";
 
-export interface PaymentServiceData {
+export interface PosPaymentRequest {
   signature: string; // hex string (GEN AC result)
-  payload: string; // hex string (GEN AC payload - raw data only)
+  payload: string; // hex string (TLV-encoded transaction data)
   amount: {
     value: string; // amount in cents as string
     assetScale: number; // transaction currency exponent
@@ -30,43 +29,49 @@ export interface PaymentServiceData {
   timestamp: number; // UTC timestamp from Date.getTime()
 }
 
-export function createPaymentServiceData(
+/**
+ * Main public API: Sends payment to POS service
+ * @param cardResponse - The GENERATE AC response from the card
+ * @param transactionData - Transaction data created during card communication
+ * @param timestamp - UTC timestamp from when transaction was initiated
+ * @param signSecret - Secret for HMAC signature
+ * @param pin - Optional PIN (required for transactions above threshold)
+ * @param pinTries - Optional PIN attempt count
+ * @returns Promise with success status and response/error
+ */
+export async function sendPayment(
+  cardResponse: Uint8Array,
   transactionData: TransactionData,
-  signature: Uint8Array, // APDU response
-  payload: Uint8Array, // Raw data sent to card
-  timestamp: number, // UTC timestamp
-): PaymentServiceData {
-  const signatureHex = uint8ArrayToHexString(signature);
-  const payloadHex = uint8ArrayToHexString(payload);
+  timestamp: number,
+  signSecret: string,
+  pin?: string,
+  pinTries?: number,
+): Promise<{ success: boolean; response?: any; error?: string }> {
+  // Build TLV payload from card response and transaction data
+  const tlvPayload = buildTlvPayload(
+    cardResponse,
+    transactionData,
+    pin,
+    pinTries,
+  );
 
-  return {
-    signature: signatureHex,
-    payload: payloadHex,
-    amount: {
-      value: transactionData.amount.toString(), // Already in cents
-      assetScale: transactionData.transactionCurrencyExponent,
-      assetCode: "USD",
-    },
-    //TODO: remove hardcoded wallet addresses
-    // senderWalletAddress: transactionData.senderWalletAddress,
-    // receiverWalletAddress: transactionData.receiverWalletAddress,
-    senderWalletAddress: "https://cloud-nine-wallet-backend/accounts/gfranklin",
-    receiverWalletAddress: "https://happy-life-bank-backend/accounts/pfry",
-    timestamp: timestamp,
-  };
+  // Build complete payment request
+  const paymentRequest = buildPaymentRequest(
+    transactionData,
+    cardResponse,
+    tlvPayload,
+    timestamp,
+  );
+
+  // Send to POS service
+  return await sendToPosService(paymentRequest, signSecret);
 }
 
-// Helper function to convert Uint8Array to hex string
-function uint8ArrayToHexString(uint8Array: Uint8Array): string {
-  return Array.from(uint8Array)
-    .map((byte) => {
-      const hex = byte.toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    })
-    .join("");
-}
-
-export function createPosServicePayload(
+/**
+ * Builds the TLV-encoded payload for the POS service
+ * Internal function - not exported
+ */
+function buildTlvPayload(
   generateACResponse: Uint8Array,
   transactionData: TransactionData,
   pin?: string,
@@ -74,15 +79,8 @@ export function createPosServicePayload(
 ): Uint8Array {
   const parsedResponse = TLVParser(generateACResponse);
 
-  // Find tag 77 (Response Message Template Format 2)
-  const tag77Byte = parseInt(EMV_TAGS.RESPONSE_MESSAGE_TEMPLATE, 16);
-  const tag77 = parsedResponse.find(
-    (tlv) =>
-      tlv.getTag()[0] === tag77Byte ||
-      (tlv.getTag().length === 1 && tlv.getTag()[0] === tag77Byte),
-  );
-  const tag9F26 = tag77?.getChild(EMV_TAGS.APPLICATION_CRYPTOGRAM); // Application Cryptogram
-  const tag9F27 = tag77?.getChild(EMV_TAGS.CRYPTOGRAM_INFO_DATA); // Cryptogram Information Data
+  const tag9F26 = parsedResponse[0]?.getChild(EMV_TAGS.APPLICATION_CRYPTOGRAM); // Application Cryptogram
+  const tag9F27 = parsedResponse[0]?.getChild(EMV_TAGS.CRYPTOGRAM_INFO_DATA); // Cryptogram Information Data
 
   const tag9F37Value = numberTo4Bytes(transactionData.unpredictableNumber); // Unpredictable Number (4 bytes)
   const tag9AValue = dateStringToBytes(transactionData.date); // Transaction Date (3 bytes: YYMMDD)
@@ -100,7 +98,9 @@ export function createPosServicePayload(
     tag99Value = hexToUint8Array(pinBlockHex); // PIN block (8 bytes)
 
     const triesRemaining =
-      pinTries !== undefined ? MAX_PIN_ATTEMPTS - pinTries : MAX_PIN_ATTEMPTS;
+      pinTries !== undefined
+        ? config.pin.maxAttempts - pinTries
+        : config.pin.maxAttempts;
     tag9F17Value = new Uint8Array([Math.max(0, triesRemaining)]);
   }
 
@@ -149,7 +149,7 @@ export function createPosServicePayload(
   }
 
   console.log(
-    "[POS Service Payload]",
+    "[TLV Payload]",
     uint8ArrayToHex(result),
     `(${totalLength} bytes, PIN: ${pin ? "included" : "not included"})`,
   );
@@ -157,18 +157,54 @@ export function createPosServicePayload(
   return result;
 }
 
-export async function sendPaymentToPosService(
-  paymentData: PaymentServiceData,
+/**
+ * Builds the complete payment request object for POS service
+ * Internal function - not exported
+ */
+function buildPaymentRequest(
+  transactionData: TransactionData,
+  signature: Uint8Array, // APDU response from GENERATE AC
+  payload: Uint8Array, // TLV-encoded payload
+  timestamp: number, // UTC timestamp
+): PosPaymentRequest {
+  const signatureHex = uint8ArrayToHex(signature);
+  const payloadHex = uint8ArrayToHex(payload);
+
+  return {
+    signature: signatureHex,
+    payload: payloadHex,
+    amount: {
+      value: transactionData.amount.toString(), // Already in cents
+      assetScale: transactionData.transactionCurrencyExponent,
+      assetCode: "USD",
+    },
+    //TODO: remove hardcoded wallet addresses
+    // senderWalletAddress: transactionData.senderWalletAddress,
+    // receiverWalletAddress: transactionData.receiverWalletAddress,
+    senderWalletAddress: "https://cloud-nine-wallet-backend/accounts/gfranklin",
+    receiverWalletAddress: "https://happy-life-bank-backend/accounts/pfry",
+    timestamp: timestamp,
+  };
+}
+
+/**
+ * Sends payment request to POS service endpoint
+ * Internal function - not exported
+ */
+async function sendToPosService(
+  paymentRequest: PosPaymentRequest,
   signSecret: string,
 ): Promise<{ success: boolean; response?: any; error?: string }> {
-  //Change this to local service that exposes pos service (any link that redirects to -> localhost:4008/payment with rafiki localenv started)
-  const endpoint = "https://4dc811ba5137.ngrok-free.app/payment";
+  const endpoint = config.posService.endpoint;
 
   try {
-    console.log("[POS Service Request]", JSON.stringify(paymentData, null, 2));
+    console.log(
+      "[POS Service Request]",
+      JSON.stringify(paymentRequest, null, 2),
+    );
 
     // Validate JSON before sending
-    const jsonString = JSON.stringify(paymentData);
+    const jsonString = JSON.stringify(paymentRequest);
 
     const signature = signSecret
       ? await createHmacSignature(signSecret, jsonString)
@@ -237,6 +273,10 @@ export async function sendPaymentToPosService(
   }
 }
 
+/**
+ * Creates HMAC-SHA256 signature for request authentication
+ * Internal function - not exported
+ */
 async function createHmacSignature(
   secret: string,
   payload: string,

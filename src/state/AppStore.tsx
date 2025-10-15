@@ -1,5 +1,6 @@
 import { createContext } from "preact";
 import { useContext, useReducer, useEffect, type Dispatch } from "preact/hooks";
+import { config } from "@config";
 
 export type Tx = {
   id: string;
@@ -146,7 +147,7 @@ const sampleTx: Tx[] = [
 
 const initialState: Store = {
   paymentPointer: "",
-  currency: "EUR",
+  currency: config.currency.default,
   amount: "0",
   tx: sampleTx,
   error: null,
@@ -155,7 +156,7 @@ const initialState: Store = {
   signSecret: "",
   pinTries: 0,
   pinVerified: false,
-  pinThreshold: 100,
+  pinThreshold: config.transaction.defaultPinThreshold,
 };
 
 function reducer(state: Store, action: Action): Store {
@@ -201,7 +202,7 @@ export function AppStoreProvider({
   // Hydrate from localStorage
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("ilfpos");
+      const raw = localStorage.getItem(config.storage.localStorageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
         console.log("[AppStore] Initial state loaded:", parsed);
@@ -209,7 +210,10 @@ export function AppStoreProvider({
           type: "setPaymentPointer",
           value: parsed.paymentPointer || "https://ilp.dev/009" || "",
         });
-        dispatch({ type: "setCurrency", value: parsed.currency || "EUR" });
+        dispatch({
+          type: "setCurrency",
+          value: parsed.currency || config.currency.default,
+        });
         dispatch({ type: "setAmount", value: parsed.amount || "0" });
         dispatch({
           type: "setTx",
@@ -223,7 +227,7 @@ export function AppStoreProvider({
         dispatch({ type: "setPinTries", value: parsed.pinTries || 0 });
         dispatch({
           type: "setPinThreshold",
-          value: parsed.pinThreshold || 100,
+          value: parsed.pinThreshold || config.transaction.defaultPinThreshold,
         });
         // Do not hydrate pinVerified; always start false per session
         dispatch({ type: "setPinVerified", value: false });
@@ -252,7 +256,10 @@ export function AppStoreProvider({
           ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts,
         })),
       };
-      localStorage.setItem("ilfpos", JSON.stringify(toSave));
+      localStorage.setItem(
+        config.storage.localStorageKey,
+        JSON.stringify(toSave),
+      );
     }
   }, [state]);
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "preact/hooks";
 import { route } from "preact-router";
 import { useAppStore } from "@state/AppStore";
-import { PIN_LENGTH, MAX_PIN_ATTEMPTS } from "@constants/pin";
+import { config } from "@config";
 
 type PinComponentProps = {
   onComplete?: (enteredPin: string, currentTries: number) => void;
@@ -24,10 +24,10 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
   const onKey = useCallback(
     (key: string) => {
       // Block input if max attempts exceeded
-      if (pinTries >= MAX_PIN_ATTEMPTS) return;
+      if (pinTries >= config.pin.maxAttempts) return;
 
       if (/^\d$/.test(key)) {
-        if (localPin.length < PIN_LENGTH) setLocalPin(localPin + key);
+        if (localPin.length < config.pin.length) setLocalPin(localPin + key);
       } else if (key === "Backspace" || key === "⌫") {
         setLocalPin(localPin.slice(0, -1));
       } else if (key.toLowerCase() === "c") {
@@ -55,19 +55,19 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
         onKey("c");
         e.preventDefault();
       } else if (e.key === "Enter") {
-        if (localPin.length === PIN_LENGTH) {
+        if (localPin.length === config.pin.length) {
           const newTries = pinTries + 1;
           setPinTries(newTries);
-          if (localPin === "1234") {
+          if (localPin === config.pin.devPin) {
             setError("");
             setPinVerified(true);
             if (onComplete) onComplete(localPin, newTries);
             else nav("/menu");
           } else {
             // Check if max attempts exceeded
-            if (newTries >= MAX_PIN_ATTEMPTS) {
+            if (newTries >= config.pin.maxAttempts) {
               setError(
-                `Maximum PIN attempts (${MAX_PIN_ATTEMPTS}) exceeded. Transaction cancelled.`,
+                `Maximum PIN attempts (${config.pin.maxAttempts}) exceeded. Transaction cancelled.`,
               );
               setPinVerified(false);
               // Auto-cancel after a short delay
@@ -77,7 +77,7 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
               }, 4000);
             } else {
               setError(
-                `Invalid PIN (${newTries}/${MAX_PIN_ATTEMPTS} attempts)`,
+                `Invalid PIN (${newTries}/${config.pin.maxAttempts} attempts)`,
               );
               setPinVerified(false);
             }
@@ -103,7 +103,7 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
   return (
     <div className="mt-4 bg-white px-4 py-6 text-center">
       <div className="flex flex-row justify-center tabular-nums text-center text-5xl font-bold tracking-widest">
-        {Array.from({ length: PIN_LENGTH }).map((_, i) => {
+        {Array.from({ length: config.pin.length }).map((_, i) => {
           return (
             <div key={i} className="w-15">
               {i < localPin.length ? "●" : "○"}
@@ -112,7 +112,7 @@ export function PinComponent({ onComplete, onCancel }: PinComponentProps) {
         })}
       </div>
       <div className="mt-2 text-sm text-gray-600">
-        Tries left: {MAX_PIN_ATTEMPTS - pinTries}
+        Tries left: {config.pin.maxAttempts - pinTries}
       </div>
       {error && <div className="mt-2 text-red-600">{error}</div>}
     </div>
