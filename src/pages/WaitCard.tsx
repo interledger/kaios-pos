@@ -4,10 +4,12 @@ import { route } from "preact-router";
 import {
   createTransactionData,
   createGenerateACCommand,
-  uint8ArrayToHexString,
   APDU_COMMANDS,
   hexStringToUint8Array,
+  parseGPOResponse,
+  parseReadRecordResponse,
 } from "@lib/generateAC";
+import { uint8ArrayToHex } from "@interledger/tlv-kit";
 import {
   createPaymentServiceData,
   createPosServicePayload,
@@ -99,23 +101,65 @@ export default function WaitCard({
         const selectPPSE = hexStringToUint8Array(APDU_COMMANDS.SELECT_PPSE);
         await tech.transceive(selectPPSE);
 
+        // Send GET PROCESSING OPTIONS command
+        const gpoCommand = hexStringToUint8Array(
+          APDU_COMMANDS.GET_PROCESSING_OPTIONS,
+        );
+        console.log("[GPO Command]", uint8ArrayToHex(gpoCommand));
+        const gpoResponse = await tech.transceive(gpoCommand);
+        console.log("[GPO Response]", uint8ArrayToHex(gpoResponse));
+
+        // Parse GPO response to extract ATC
+        const atc = parseGPOResponse(gpoResponse);
+        if (atc === null) {
+          console.error("Failed to extract ATC from GPO response");
+          setTransactionStatus(3); // failed
+          return null;
+        }
+
+        // Send READ RECORD command
+        const readRecordCommand = hexStringToUint8Array(
+          APDU_COMMANDS.READ_RECORD,
+        );
+        console.log(
+          "[READ RECORD Command]",
+          uint8ArrayToHex(readRecordCommand),
+        );
+        const readRecordResponse = await tech.transceive(readRecordCommand);
+        console.log(
+          "[READ RECORD Response]",
+          uint8ArrayToHex(readRecordResponse),
+        );
+
+        // Parse READ RECORD response to extract sender wallet address
+        const senderWallet = parseReadRecordResponse(readRecordResponse);
+        if (!senderWallet) {
+          console.error(
+            "Failed to extract sender wallet from READ RECORD response",
+          );
+          setTransactionStatus(3); // failed
+          return null;
+        }
+
         const now = new Date();
         const timestamp = now.getTime(); // UTC timestamp
         const amountInCents = Math.floor(parseFloat(amount || "0") * 100);
         const transactionData = createTransactionData(
           amountInCents,
           paymentPointer,
+          atc,
+          senderWallet,
         );
 
         const generateAC = createGenerateACCommand(transactionData);
 
-        console.log("[Generate AC Command]", uint8ArrayToHexString(generateAC));
+        console.log("[Generate AC Command]", uint8ArrayToHex(generateAC));
 
         const generateResponse = await tech.transceive(generateAC);
 
         console.log(
           "[Generate AC Response]",
-          uint8ArrayToHexString(generateResponse),
+          uint8ArrayToHex(generateResponse),
         );
 
         // Return card response data - don't create payload yet

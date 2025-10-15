@@ -1,3 +1,11 @@
+import {
+  TLVParser,
+  uint8ArrayToHex,
+  hexToUint8Array,
+  uint8ArrayToAscii,
+} from "@interledger/tlv-kit";
+import { EMV_TAGS } from "@constants/emvTags";
+
 export interface TransactionData {
   applicationTransactionCounter: number; // ATC - 2 bytes
   amount: number;
@@ -12,25 +20,14 @@ export interface TransactionData {
 
 export const APDU_COMMANDS = {
   SELECT_PPSE: "00A404000AA00000015103010C0601",
+  GET_PROCESSING_OPTIONS: "80A8000002830000",
+  READ_RECORD: "00B2010C00",
   GENERATE_AC: "80AEC100", // Will be completed with raw data
 } as const;
 
-export function hexStringToUint8Array(hexString: string): Uint8Array {
-  const bytes = [];
-  for (let i = 0; i < hexString.length; i += 2) {
-    bytes.push(parseInt(hexString.substr(i, 2), 16));
-  }
-  return new Uint8Array(bytes);
-}
-
-export function uint8ArrayToHexString(uint8Array: Uint8Array): string {
-  return Array.from(uint8Array)
-    .map((byte) => {
-      const hex = byte.toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    })
-    .join(" ");
-}
+// Re-export from tlv-kit for backwards compatibility
+export const hexStringToUint8Array = hexToUint8Array;
+export const uint8ArrayToHexString = uint8ArrayToHex;
 
 // Convert amount to BCD format (12 digits, 6 bytes)
 export function createBCDAmount(amount: number): Uint8Array {
@@ -96,9 +93,80 @@ export function numberTo2Bytes(value: number): Uint8Array {
   return bytes;
 }
 
+export function parseGPOResponse(response: Uint8Array): number | null {
+  try {
+    console.log("[GPO Response Raw]", uint8ArrayToHex(response));
+
+    const parsedResponse = TLVParser(response);
+
+    // Extract ATC (9F36) from the response (tag 77 is the root)
+    const atcTag = parsedResponse[0]?.getChild(
+      EMV_TAGS.APPLICATION_TRANSACTION_COUNTER,
+    );
+
+    if (!atcTag) {
+      console.error("[GPO Parse] ATC tag (9F36) not found");
+      return null;
+    }
+
+    const atcValue = atcTag.getValue();
+
+    // Convert 2-byte ATC to number
+    const atc = (atcValue[0] << 8) | atcValue[1];
+
+    console.log(
+      `[GPO Parse] ATC (9F36): ${atc} (0x${atc.toString(16).padStart(4, "0")})`,
+    );
+
+    return atc;
+  } catch (error) {
+    console.error("[GPO Parse] Error parsing GPO response:", error);
+    return null;
+  }
+}
+
+export function parseReadRecordResponse(response: Uint8Array): string | null {
+  try {
+    console.log("[READ RECORD Response Raw]", uint8ArrayToHex(response));
+
+    const parsedResponse = TLVParser(response);
+
+    // Extract sender wallet address (C1) from the response (tag 70 is the root)
+    const walletTag = parsedResponse[0]?.getChild(
+      EMV_TAGS.SENDER_WALLET_ADDRESS,
+    );
+
+    if (!walletTag) {
+      console.error(
+        "[READ RECORD Parse] Sender wallet address tag (C1) not found",
+      );
+      return null;
+    }
+
+    const walletBytes = walletTag.getValue();
+
+    // Convert bytes to ASCII string using tlv-kit utility
+    const walletAddress = uint8ArrayToAscii(walletBytes).replace(/\0+$/, ""); // Remove null padding
+
+    console.log(
+      `[READ RECORD Parse] Sender Wallet Address (C1): ${walletAddress}`,
+    );
+
+    return walletAddress;
+  } catch (error) {
+    console.error(
+      "[READ RECORD Parse] Error parsing READ RECORD response:",
+      error,
+    );
+    return null;
+  }
+}
+
 export function createTransactionData(
   amount: number,
   receiverWalletAddress: string,
+  applicationTransactionCounter: number,
+  senderWalletAddress: string,
 ): TransactionData {
   const now = new Date();
   const year = now.getFullYear() % 100;
@@ -111,10 +179,6 @@ export function createTransactionData(
   // Generate random 4-byte unpredictable number
   const unpredictableNumber = Math.floor(Math.random() * 0x100000000); // 0 to 0xffffffff
 
-  // ATC (Application Transaction Counter) - hardcoded for now
-  // In the future, this will be retrieved from the card via READ RECORD APDU command
-  const applicationTransactionCounter = 0x0001; // Hardcoded to 1 for now
-
   return {
     applicationTransactionCounter,
     amount,
@@ -123,7 +187,7 @@ export function createTransactionData(
     date: `${year.toString().padStart(2, "0")}${month.toString().padStart(2, "0")}${day.toString().padStart(2, "0")}`,
     time: `${hour.toString().padStart(2, "0")}${minute.toString().padStart(2, "0")}${second.toString().padStart(2, "0")}`,
     unpredictableNumber: unpredictableNumber,
-    senderWalletAddress: "https://wallet.example/alice",
+    senderWalletAddress: senderWalletAddress,
     receiverWalletAddress: receiverWalletAddress,
   };
 }

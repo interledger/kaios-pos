@@ -36,8 +36,8 @@ export function createPaymentServiceData(
   payload: Uint8Array, // Raw data sent to card
   timestamp: number, // UTC timestamp
 ): PaymentServiceData {
-  const signatureHex = uint8ArrayToHexString(signature);
-  const payloadHex = uint8ArrayToHexString(payload);
+  const signatureHex = uint8ArrayToHex(signature);
+  const payloadHex = uint8ArrayToHex(payload);
 
   return {
     signature: signatureHex,
@@ -56,16 +56,6 @@ export function createPaymentServiceData(
   };
 }
 
-// Helper function to convert Uint8Array to hex string
-function uint8ArrayToHexString(uint8Array: Uint8Array): string {
-  return Array.from(uint8Array)
-    .map((byte) => {
-      const hex = byte.toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    })
-    .join("");
-}
-
 export function createPosServicePayload(
   generateACResponse: Uint8Array,
   transactionData: TransactionData,
@@ -74,15 +64,8 @@ export function createPosServicePayload(
 ): Uint8Array {
   const parsedResponse = TLVParser(generateACResponse);
 
-  // Find tag 77 (Response Message Template Format 2)
-  const tag77Byte = parseInt(EMV_TAGS.RESPONSE_MESSAGE_TEMPLATE, 16);
-  const tag77 = parsedResponse.find(
-    (tlv) =>
-      tlv.getTag()[0] === tag77Byte ||
-      (tlv.getTag().length === 1 && tlv.getTag()[0] === tag77Byte),
-  );
-  const tag9F26 = tag77?.getChild(EMV_TAGS.APPLICATION_CRYPTOGRAM); // Application Cryptogram
-  const tag9F27 = tag77?.getChild(EMV_TAGS.CRYPTOGRAM_INFO_DATA); // Cryptogram Information Data
+  const tag9F26 = parsedResponse[0]?.getChild(EMV_TAGS.APPLICATION_CRYPTOGRAM); // Application Cryptogram
+  const tag9F27 = parsedResponse[0]?.getChild(EMV_TAGS.CRYPTOGRAM_INFO_DATA); // Cryptogram Information Data
 
   const tag9F37Value = numberTo4Bytes(transactionData.unpredictableNumber); // Unpredictable Number (4 bytes)
   const tag9AValue = dateStringToBytes(transactionData.date); // Transaction Date (3 bytes: YYMMDD)
