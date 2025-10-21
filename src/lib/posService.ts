@@ -110,8 +110,6 @@ function buildTlvPayload(
       "https://cloud-nine-wallet-backend/accounts/gfranklin",
     );
 
-    console.log("[TLV Payload Build] Created wallet address values");
-
     // PIN block
     let tag99Value: Uint8Array | null = null;
     let tag9F17Value: Uint8Array | null = null;
@@ -172,7 +170,6 @@ function buildTlvPayload(
       const tlv99 = new TLV(EMV_TAGS.TRANSACTION_PIN_DATA, tag99Value);
       childTlvs.push(tlv9F17);
       childTlvs.push(tlv99);
-      console.log("[TLV Payload Build] Added PIN TLV objects");
     }
 
     const encodedChildren = childTlvs.map((tlv) => tlv.encode());
@@ -277,8 +274,6 @@ async function sendToPosService(
       headers["X-Signature"] = signature;
       headers["X-Signature-Algorithm"] = "HMAC-SHA256";
     }
-
-    console.log("HEADERS: ", headers);
 
     const response = await fetch(endpoint, {
       method: "POST",
