@@ -16,6 +16,7 @@ export const EMV_TAGS = {
   TRANSACTION_TIME: "9F21", // Transaction Time (3 bytes: HHMMSS)
   AMOUNT_AUTHORISED: "9F02", // Amount, Authorised (6 bytes BCD)
   TRANSACTION_CURRENCY_CODE: "5F2A", // Transaction Currency Code (2 bytes)
+  TRANSACTION_CURRENCY_EXPONENT: "5F36", // Transaction Currency Exponent (1 byte)
 
   // PIN Tags
   PIN_TRY_COUNTER: "9F17", // PIN Try Counter (1 byte)
@@ -29,4 +30,8 @@ export const EMV_TAGS = {
 
   // READ RECORD Tags
   SENDER_WALLET_ADDRESS: "C1", // Sender Wallet Address (variable length)
+
+  // Wallet Address Tags (for TLV payload)
+  RECEIVER_WALLET_ADDRESS: "DF01", // Receiver Wallet Address (variable length)
+  SENDER_WALLET_ADDRESS_TLV: "DF02", // Sender Wallet Address (variable length)
 } as const;
