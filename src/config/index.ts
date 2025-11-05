@@ -14,7 +14,7 @@ export const config = {
   // POS Service
   posService: {
     // Change this endpoint as needed for your environment
-    endpoint: "https://4dc811ba5137.ngrok-free.app/payment",
+    endpoint: "https://testnet-pos.interledger-test.dev/payment",
   },
 
   // PIN Configuration
