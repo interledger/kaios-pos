@@ -31,10 +31,10 @@ export default function PaymentPointer(_props: { path?: string }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const backKeys = ["SoftLeft", "EndCall"];
-      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      if (e.key === "ArrowDown") {
         setFocused((f) => (f + 1) % 2);
         e.preventDefault();
-      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      } else if (e.key === "ArrowUp") {
         setFocused((f) => (f - 1 + 2) % 2);
         e.preventDefault();
       } else if (backKeys.indexOf(e.key) !== -1) {

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { route } from "preact-router";
 import jsQR from "jsqr";
 import { useAppStore } from "@state/AppStore";
+import { get } from "@lib/paymentPointer";
 
 export default function SetupByQR(_props: { path?: string }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -11,31 +12,33 @@ export default function SetupByQR(_props: { path?: string }) {
   const nav = route;
   const {
     setPaymentPointer,
+    setCurrency,
     setSignSecret,
     setError: setStoreError,
   } = useAppStore();
 
-  const handleDecodedData = (rawData: string) => {
+  const handleDecodedData = async (rawData: string) => {
     setError(null);
     try {
+      console.log("[SetupByQR] decoded QR data", rawData);
       const parsed = JSON.parse(rawData);
       if (!parsed || typeof parsed !== "object") {
         throw new Error("QR payload must be an object");
       }
       const { paymentPointer, signSec } = parsed as {
         paymentPointer?: unknown;
-        signSec?: unknown;
+        signSec?: string;
       };
 
       if (typeof paymentPointer !== "string" || paymentPointer.trim() === "") {
         throw new Error("paymentPointer missing in QR code");
       }
       if (typeof signSec !== "string" || signSec.trim() === "") {
-        throw new Error("signSec missing in QR code");
+        //throw new Error("signSec missing in QR code");
       }
 
       const sanitizedPointer = paymentPointer.trim();
-      const sanitizedSecret = signSec.trim();
+      const sanitizedSecret = signSec ? signSec.trim() : "";
 
       console.log("[SetupByQR] parsed QR payload", {
         paymentPointer: sanitizedPointer,
@@ -60,7 +63,17 @@ export default function SetupByQR(_props: { path?: string }) {
         2,
       );
       setDecodedValue(displayPayload);
-      console.log("[SetupByQR] stored QR settings");
+      console.log("[SetupByQR] stored QR settings", displayPayload);
+
+      const ppData = await get(sanitizedPointer);
+
+      if (!ppData || typeof ppData !== "object") {
+        throw new Error("Failed to fetch payment pointer data");
+      }
+
+      setCurrency(ppData.assetCode || "EUR");
+
+      nav("/payment-pointer");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Invalid QR configuration payload";
