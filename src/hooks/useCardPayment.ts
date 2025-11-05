@@ -16,6 +16,7 @@ import {
 import { initializeCard, transceive, type MozNFCTag } from "@lib/card/service";
 import { sendPayment } from "@lib/posService";
 import { TransactionStatus } from "@constants/statuses";
+import { useAppStore } from "../state/AppStore";
 
 interface CardResponse {
   generateResponse: Uint8Array;
@@ -48,6 +49,8 @@ export function useCardPayment({
     TransactionStatus.WAITING_FOR_CARD,
   );
   const [cardResponse, setCardResponse] = useState<CardResponse | null>(null);
+
+  const { currency: currencyCode } = useAppStore();
 
   const processCardCommunication = useCallback(
     async (tag: MozNFCTag): Promise<CardResponse | null> => {
@@ -96,6 +99,7 @@ export function useCardPayment({
         const amountInCents = Math.floor(parseFloat(amount || "0") * 100);
         const transactionData = createTransactionData(
           amountInCents,
+          currencyCode,
           paymentPointer,
           atc,
           senderWallet,
@@ -136,6 +140,7 @@ export function useCardPayment({
         cardData.generateResponse,
         cardData.transactionData,
         cardData.timestamp,
+
         signSecret,
         pin,
         pinTries,

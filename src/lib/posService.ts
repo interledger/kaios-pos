@@ -93,7 +93,7 @@ function buildTlvPayload(
     const tag9F37Value = numberTo4Bytes(transactionData.unpredictableNumber); // Unpredictable Number (4 bytes)
     const tag9AValue = dateStringToBytes(transactionData.date); // Transaction Date (3 bytes: YYMMDD)
     const tag9F21Value = timeStringToBytes(transactionData.time); // Transaction Time (3 bytes: HHMMSS)
-    const tag9F02Value = createBCDAmount(transactionData.amount); // Amount, Authorised (6 bytes BCD)
+    const tag9F02Value = createBCDAmount(transactionData.amount / 100); // Amount, Authorised (6 bytes BCD)
     const tag5F2AValue = currencyCodeToBytes(transactionData.currencyCode); // Transaction Currency Code (2 bytes)
     const tag5F36Value = new Uint8Array([
       transactionData.transactionCurrencyExponent,
@@ -104,11 +104,9 @@ function buildTlvPayload(
     // const tagDF01Value = asciiToUint8Array(transactionData.receiverWalletAddress); // Receiver Wallet Address
     // const tagDF02Value = asciiToUint8Array(transactionData.senderWalletAddress); // Sender Wallet Address
     const tagDF01Value = asciiToUint8Array(
-      "https://happy-life-bank-backend/accounts/pfry",
+      transactionData.receiverWalletAddress.replace("https://", "$"),
     );
-    const tagDF02Value = asciiToUint8Array(
-      "https://cloud-nine-wallet-backend/accounts/gfranklin",
-    );
+    const tagDF02Value = asciiToUint8Array(transactionData.senderWalletAddress);
 
     // PIN block
     let tag99Value: Uint8Array | null = null;
@@ -232,13 +230,16 @@ function buildPaymentRequest(
     amount: {
       value: transactionData.amount.toString(), // Already in cents
       assetScale: transactionData.transactionCurrencyExponent,
-      assetCode: "USD",
+      assetCode: transactionData.currencyCode,
     },
     //TODO: remove hardcoded wallet addresses
-    // senderWalletAddress: transactionData.senderWalletAddress,
-    // receiverWalletAddress: transactionData.receiverWalletAddress,
-    senderWalletAddress: "https://cloud-nine-wallet-backend/accounts/gfranklin",
-    receiverWalletAddress: "https://happy-life-bank-backend/accounts/pfry",
+    senderWalletAddress: transactionData.senderWalletAddress.replace(
+      "$",
+      "https://",
+    ),
+    receiverWalletAddress: transactionData.receiverWalletAddress,
+    // senderWalletAddress: "https://cloud-nine-wallet-backend/accounts/gfranklin",
+    // receiverWalletAddress: "https://happy-life-bank-backend/accounts/pfry",
     timestamp: timestamp,
   };
 }
