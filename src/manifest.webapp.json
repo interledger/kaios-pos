@@ -1,31 +1,48 @@
 {
   "name": "Interledger POS",
   "version": "1.0.0",
-  "description": "Interledger POS App that works with the Interledger cards",
+  "description": "Interledger POS",
   "launch_path": "/index.html",
-  "type": "web",
+  "type": "certified",
   "developer": {
     "name": "Interledger",
     "url": "https://github.com/interledger/",
     "e-mail": "tech@interledger.org"
   },
   "icons": {
-    "56": "assets/icons/app_56.png",
-    "112": "assets/icons/app_112.png"
+    "56": "/assets/icons/app_56.png",
+    "112": "/assets/icons/app_112.png",
+    "128": "/assets/icons/app_112.png"
   },
+  "background_color": "#1e293b",
+  "theme_color": "#6054EF",
   "locales": {
     "en-US": {
-      "name": "Interledger POS App",
+      "name": "Interledger POS",
       "subtitle": "Interledger POS App",
       "description": "POS app that works with the Interledger cards"
+    },
+    "ro-RO": {
+      "name": "Interledger POS",
+      "subtitle": "Aplicatia Interledger POS",
+      "description": "POS app care merge cu cardurile Interledger"
     }
   },
   "default_locale": "en-US",
+  "orientation": "default",
+  "messages": [{ "nfc-hci-event-transaction": "/index.html" }],
   "permissions": {
+    "camera": {
+      "description": "Required for accessing cameras on the device."
+    },
+    "video-capture": {},
     "permissions": {},
     "settings": { "access": "readwrite" },
     "nfc": {},
+    "nfc-read": {},
+    "nfc-write": {},
     "nfc-manager": {},
+    "nfc-hci-events": {},
     "secureelement-manage": {}
   }
 }

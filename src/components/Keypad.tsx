@@ -21,7 +21,7 @@ export function Keypad({ onKey }: { onKey: (k: string) => void }) {
         <button
           key={k}
           onClick={() => onKey(k)}
-          className="rounded-2xl bg-white/10 py-6 text-2xl font-semibold hover:bg-white/15 active:bg-white/20"
+          className="rounded-2xl bg-white-10 py-6 text-2xl font-semibold hover:bg-white-15 active:bg-white-20"
         >
           {k}
         </button>
@@ -29,7 +29,7 @@ export function Keypad({ onKey }: { onKey: (k: string) => void }) {
       <button
         key={"C"}
         onClick={() => onKey("C")}
-        className="col-span-3 rounded-2xl bg-rose-500/80 py-4 text-base font-semibold hover:bg-rose-500"
+        className="col-span-3 rounded-2xl bg-rose-500-80 py-4 text-base font-semibold hover:bg-rose-500"
       >
         Clear
       </button>

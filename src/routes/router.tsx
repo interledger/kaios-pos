@@ -10,6 +10,10 @@ import WaitCard from "@pages/WaitCard";
 import Balance from "@pages/Balance";
 import EndOfDay from "@pages/EndOfDay";
 import Settings from "@pages/Settings";
+import PaymentPointer from "@pages/PaymentPointer";
+import Language from "@pages/Language";
+import SetupByQR from "@pages/SetupByQR";
+import Pin from "@pages/Pin";
 
 export default function AppRouter() {
   return (
@@ -22,7 +26,11 @@ export default function AppRouter() {
         <WaitCard path="/wait-card" />
         <Balance path="/balance" />
         <EndOfDay path="/eod" />
+        <SetupByQR path="/setup-qr" />
         <Settings path="/settings" />
+        <PaymentPointer path="/payment-pointer" />
+        <Language path="/language" />
+        <Pin path="/pin" />
       </Router>
     </Layout>
   );

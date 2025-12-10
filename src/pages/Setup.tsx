@@ -19,14 +19,12 @@ export default function Setup(_props: { path?: string }) {
   }
   const initialPointer = useRef(paymentPointer);
 
-  const [paymentPointerInput, setPaymentPointerInput] = useState("");
+  const [paymentPointerInput, setPaymentPointerInput] = useState(
+    "https://ilp.link/adi",
+  );
 
   useEffect(() => {
     setError("");
-    console.log(
-      "Setup mounted with pp: ",
-      (initialPointer.current, initialPointer.current.trim().length),
-    );
     if (initialPointer.current && initialPointer.current.trim().length > 0) {
       nav("/menu");
     }
@@ -34,7 +32,11 @@ export default function Setup(_props: { path?: string }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (paymentPointer !== "" && paymentPointerInput !== "" && (e.key === "ArrowLeft" || e.key === "Backspace")) {
+      if (
+        paymentPointer !== "" &&
+        paymentPointerInput !== "" &&
+        (e.key === "ArrowLeft" || e.key === "Backspace")
+      ) {
         console.log("Navigating to menu", paymentPointerInput);
         nav("/menu");
         e.preventDefault();
@@ -49,12 +51,15 @@ export default function Setup(_props: { path?: string }) {
   }, []);
   return (
     <section className="space-y-6">
-      <h2 className="text-xl font-semibold">Merchant setup</h2>
-      <label className="block">
-        <span className="text-sm text-white/80" data-l10n-id="payment-pointer"></span>
+      <h2
+        data-l10n-id="wallet-setup"
+        className="text-3xl text-center font-extrabold text-black mt-6"
+      ></h2>
+      <label className="flex flex-col border-green bg-white py-4 px-4 focus:ring-2 focus:ring-emerald-400">
+        <span className="text-2xl mt-2" data-l10n-id="payment-pointer"></span>
         <input
           ref={inputRef}
-          className="mt-2 w-full rounded-xl bg-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 placeholder-white/40"
+          className="mt-2 border-none  py-3 outline-none "
           placeholder="e.g., $example.com/alice"
           value={paymentPointerInput}
           onKeyDown={async (e) => {
@@ -73,7 +78,6 @@ export default function Setup(_props: { path?: string }) {
         />
         {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
       </label>
-
     </section>
   );
 }

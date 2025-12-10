@@ -1,18 +1,16 @@
 // WaitCard.tsx
-import { useEffect, useRef, useCallback } from "preact/hooks";
+import { Footer } from "@components/Footer";
+import { Header } from "@components/Header";
+import { PinComponent } from "@components/PinComponent";
+import { TransactionStatus as TransactionStatusComponent } from "@components/TransactionStatus";
+import { TransactionStatus } from "@constants/statuses";
+import { useCardPayment } from "@hooks/useCardPayment";
+import { useNfcReader } from "@hooks/useNfcReader";
+import { useAppStore } from "@state/AppStore";
 import { route } from "preact-router";
-
-declare global {
-  interface Navigator {
-    mozNfc?: {
-      ontagfound: ((e: any) => void) | null;
-      ontaglost: ((e: any) => void) | null;
-    };
-  }
-}
+import { useCallback, useEffect, useRef } from "preact/hooks";
 
 type WaitCardProps = {
-  decrement?: (tag: any) => void;
   playRingtone?: () => void;
   onTagLost?: (e: any) => void;
   onCancel?: () => void;
@@ -21,88 +19,58 @@ type WaitCardProps = {
 };
 
 export default function WaitCard({
-  path,
-  decrement,
   playRingtone,
   onTagLost,
-  onCancel,
   autoFocus = true,
   className = "",
 }: { path?: string } & WaitCardProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const {
+    currency,
+    paymentPointer,
+    amount,
+    signSecret,
+    pinVerified,
+    pinThreshold,
+    setPinVerified,
+    setPinTries,
+  } = useAppStore();
 
-  const handleTagFound = useCallback(
-    (event: any) => {
-      const { tag } = event;
-      console.log("NfcDemo tag found:", tag);
+  const handleResetPin = useCallback(() => {
+    setPinVerified(false);
+    setPinTries(0);
+  }, [setPinVerified, setPinTries]);
 
-      if (!tag) return;
+  const { transactionStatus, processCard, handlePinComplete, handlePinCancel } =
+    useCardPayment({
+      amount,
+      paymentPointer,
+      signSecret,
+      pinThreshold,
+      pinVerified,
+      onPlayRingtone: playRingtone,
+      onResetPin: handleResetPin,
+    });
 
-      // UX feedback
-      if ("vibrate" in navigator) navigator.vibrate?.(100);
-      playRingtone?.();
-
-      // Your logic: only act on MIFARE-Classic
-      if (
-        Array.isArray(tag.techList) &&
-        tag.techList.includes("MIFARE-Classic")
-      ) {
-        // prevent default so mozNfc doesn't immediately fire taglost
-        if (typeof event.preventDefault === "function") {
-          try {
-            event.preventDefault();
-          } catch { }
-        }
-        decrement?.(tag);
-      }
-    },
-    [decrement, playRingtone],
-  );
-
-  const handleTagLost = useCallback(
-    (event: any) => {
-      console.log("NfcDemo tag lost:", event);
-      onTagLost?.(event);
-    },
-    [onTagLost],
-  );
-
-  useEffect(() => {
-    if (autoFocus) {
-      const panel = panelRef.current;
-      setTimeout(() => panel?.focus(), 0);
-    }
-
-    let nfc: typeof window.navigator.mozNfc | undefined;
-    try {
-      nfc = window.navigator.mozNfc;
-      if (!nfc) throw new Error("mozNfc not available");
-      nfc.ontagfound = handleTagFound;
-      nfc.ontaglost = handleTagLost;
-      return () => {
-        if (nfc) {
-          nfc.ontagfound = null;
-          nfc.ontaglost = null;
-        }
-      };
-    } catch (err) {
-      console.log("mozNfc not available or error:", err);
-      console.log("run later from here a cancel process function if needed");
-      // commenting out this for now.
-      //onCancel?.(); // Uncomment if we want to auto-cancel when NFC is not available
-    }
-  }, [autoFocus, handleTagFound, handleTagLost, onCancel]);
+  useNfcReader({
+    onTagFound: processCard,
+    onTagLost,
+    onPlayRingtone: playRingtone,
+    autoFocus,
+    panelRef,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-
       if (
         e.key === "Backspace" ||
-        e.key === "ArrowLeft" ||
-        e.key === "SoftRight" || //lets see if this works.
-        e.key === "EndCall"      //lets see if this works.
+        e.key === "SoftLeft" ||
+        e.key === "EndCall" //lets see if this works.
       ) {
         route("/sell");
+        e.preventDefault();
+      } else if (e.key === "Enter") {
+        // prevent manual cycling; Enter does nothing here
         e.preventDefault();
       }
     };
@@ -111,15 +79,22 @@ export default function WaitCard({
   }, []);
 
   return (
-    <div
-      ref={panelRef}
-      tabIndex={-1}
-      className={`rounded-2xl p-6 bg-white/5 ring-1 ring-white/10 ${className}`}
-    >
-      <h2 className="text-lg font-semibold">Hold card near the reader</h2>
-      <p className="mt-2 text-white/70">
-        Waiting for an NFC card… keep it in the field until confirmed.
-      </p>
+    <div ref={panelRef} tabIndex={-1} className={`${className}`}>
+      <Header title="wait-card" />
+      {transactionStatus === TransactionStatus.PIN_ENTRY && (
+        <PinComponent
+          onComplete={handlePinComplete}
+          onCancel={handlePinCancel}
+        />
+      )}
+      {transactionStatus !== TransactionStatus.PIN_ENTRY && (
+        <TransactionStatusComponent
+          transactionStatus={transactionStatus}
+          amount={amount}
+          currency={currency}
+        />
+      )}
+      <Footer selectBtn={false} optionBtn={false} />
     </div>
   );
 }

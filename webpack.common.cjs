@@ -38,6 +38,9 @@ module.exports = {
       "@state": resolveApp("./src/state/"),
       "@lib": resolveApp("./src/lib/"),
       "@services": resolveApp("./src/services/"),
+      "@constants": resolveApp("./src/constants/"),
+      "@hooks": resolveApp("./src/hooks/"),
+      "@config": resolveApp("./src/config/index.ts"),
     },
   },
   optimization: {
@@ -94,6 +97,7 @@ module.exports = {
       patterns: [
         { from: "src/manifest.webapp.json", to: "manifest.webapp" },
         { from: "assets", to: "assets" },
+        { from: "src/locales", to: "locales" },
       ],
     }),
     new HtmlWebpackPlugin({

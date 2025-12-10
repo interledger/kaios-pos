@@ -1,6 +1,6 @@
-
 import { createContext } from "preact";
-import { useContext, useReducer, useEffect } from "preact/hooks";
+import { useContext, useReducer, useEffect, type Dispatch } from "preact/hooks";
+import { config } from "@config";
 
 export type Tx = {
   id: string;
@@ -16,7 +16,12 @@ export type Store = {
   amount: string;
   tx: Tx[];
   error: string | null;
+  locale: string;
   _hasHydrated: boolean;
+  signSecret: string;
+  pinTries: number;
+  pinVerified: boolean;
+  pinThreshold: number;
 };
 
 type Action =
@@ -25,7 +30,12 @@ type Action =
   | { type: "setAmount"; value: string }
   | { type: "setTx"; value: Tx[] }
   | { type: "setError"; value: string | null }
-  | { type: "setHasHydrated"; value: boolean };
+  | { type: "setLocale"; value: string }
+  | { type: "setHasHydrated"; value: boolean }
+  | { type: "setSignSecret"; value: string }
+  | { type: "setPinTries"; value: number }
+  | { type: "setPinVerified"; value: boolean }
+  | { type: "setPinThreshold"; value: number };
 
 const sampleTx: Tx[] = [
   {
@@ -63,16 +73,90 @@ const sampleTx: Tx[] = [
     currency: "EUR",
     ts: new Date(Date.now() - 1000 * 60 * 30),
   },
+  {
+    id: "t6",
+    amount: 19.77,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t7",
+    amount: 19.88,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t8",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t8",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t9",
+    amount: 16.39,
+    fee: 0.06,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t10",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t11",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t12",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t13",
+    amount: 8.27,
+    fee: 0.03,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
+  {
+    id: "t14",
+    amount: 19.39,
+    fee: 0.07,
+    currency: "EUR",
+    ts: new Date(Date.now() - 1000 * 60 * 30),
+  },
 ];
-
 
 const initialState: Store = {
   paymentPointer: "",
-  currency: "EUR",
+  currency: config.currency.default,
   amount: "0",
   tx: sampleTx,
   error: null,
+  locale: "en-US",
   _hasHydrated: false,
+  signSecret: "",
+  pinTries: 0,
+  pinVerified: false,
+  pinThreshold: config.transaction.defaultPinThreshold,
 };
 
 function reducer(state: Store, action: Action): Store {
@@ -87,35 +171,73 @@ function reducer(state: Store, action: Action): Store {
       return { ...state, tx: action.value };
     case "setError":
       return { ...state, error: action.value };
+    case "setLocale":
+      return { ...state, locale: action.value };
     case "setHasHydrated":
       return { ...state, _hasHydrated: action.value };
+    case "setSignSecret":
+      return { ...state, signSecret: action.value };
+    case "setPinTries":
+      return { ...state, pinTries: action.value };
+    case "setPinVerified":
+      return { ...state, pinVerified: action.value };
+    case "setPinThreshold":
+      return { ...state, pinThreshold: action.value };
     default:
       return state;
   }
 }
 
-const StoreContext = createContext<
-  | [Store, React.Dispatch<Action>]
-  | undefined
->(undefined);
+const StoreContext = createContext<[Store, Dispatch<Action>] | undefined>(
+  undefined,
+);
 
-export function AppStoreProvider({ children }: { children: preact.ComponentChildren }) {
+export function AppStoreProvider({
+  children,
+}: {
+  children: preact.ComponentChildren;
+}) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   // Hydrate from localStorage
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("ilfpos");
+      const raw = localStorage.getItem(config.storage.localStorageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
-        dispatch({ type: "setPaymentPointer", value: parsed.paymentPointer || "" });
-        dispatch({ type: "setCurrency", value: parsed.currency || "EUR" });
+        console.log("[AppStore] Initial state loaded:", parsed);
+        dispatch({
+          type: "setPaymentPointer",
+          value: parsed.paymentPointer || "https://ilp.dev/009" || "",
+        });
+        dispatch({
+          type: "setCurrency",
+          value: parsed.currency || config.currency.default,
+        });
         dispatch({ type: "setAmount", value: parsed.amount || "0" });
-        dispatch({ type: "setTx", value: Array.isArray(parsed.tx) ? parsed.tx.map((t: any) => ({ ...t, ts: new Date(t.ts) })) : sampleTx });
+        dispatch({
+          type: "setTx",
+          value: Array.isArray(parsed.tx)
+            ? parsed.tx.map((t: any) => ({ ...t, ts: new Date(t.ts) }))
+            : sampleTx,
+        });
         dispatch({ type: "setError", value: parsed.error || null });
+        dispatch({ type: "setLocale", value: parsed.locale || "en-US" });
+        dispatch({ type: "setSignSecret", value: parsed.signSecret || "" });
+        dispatch({ type: "setPinTries", value: parsed.pinTries || 0 });
+        dispatch({
+          type: "setPinThreshold",
+          value: parsed.pinThreshold || config.transaction.defaultPinThreshold,
+        });
+        // Do not hydrate pinVerified; always start false per session
+        dispatch({ type: "setPinVerified", value: false });
+      }
+      if (!raw) {
+        console.log("[AppStore] No persisted state found in localStorage");
       }
     } catch (e) {
       // ignore
+      console.error("[AppStore] Failed to hydrate persisted state", e);
     }
     dispatch({ type: "setHasHydrated", value: true });
   }, []);
@@ -126,14 +248,25 @@ export function AppStoreProvider({ children }: { children: preact.ComponentChild
       // Serialize to a plain object for localStorage
       const toSave = {
         ...state,
-        tx: state.tx.map((t) => ({ ...t, ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts })),
+        // Ensure we do not persist pinVerified or pinTries across sessions
+        pinVerified: false,
+        pinTries: 0,
+        tx: state.tx.map((t) => ({
+          ...t,
+          ts: t.ts instanceof Date ? t.ts.toISOString() : t.ts,
+        })),
       };
-      localStorage.setItem("ilfpos", JSON.stringify(toSave));
+      localStorage.setItem(
+        config.storage.localStorageKey,
+        JSON.stringify(toSave),
+      );
     }
   }, [state]);
 
   return (
-    <StoreContext.Provider value={[state, dispatch]}>{children}</StoreContext.Provider>
+    <StoreContext.Provider value={[state, dispatch]}>
+      {children}
+    </StoreContext.Provider>
   );
 }
 
@@ -145,12 +278,21 @@ export function useAppStore() {
   // Provide state and setter functions for compatibility
   return {
     ...state,
-    setPaymentPointer: (v: string) => dispatch({ type: "setPaymentPointer", value: v }),
+    setPaymentPointer: (v: string) =>
+      dispatch({ type: "setPaymentPointer", value: v }),
     setCurrency: (v: string) => dispatch({ type: "setCurrency", value: v }),
     setAmount: (v: string) => dispatch({ type: "setAmount", value: v }),
     setTx: (tx: Tx[]) => dispatch({ type: "setTx", value: tx }),
     setError: (v: string | null) => dispatch({ type: "setError", value: v }),
-    setHasHydrated: (v: boolean) => dispatch({ type: "setHasHydrated", value: v }),
+    setLocale: (v: string) => dispatch({ type: "setLocale", value: v }),
+    setHasHydrated: (v: boolean) =>
+      dispatch({ type: "setHasHydrated", value: v }),
+    setSignSecret: (v: string) => dispatch({ type: "setSignSecret", value: v }),
+    setPinTries: (v: number) => dispatch({ type: "setPinTries", value: v }),
+    setPinVerified: (v: boolean) =>
+      dispatch({ type: "setPinVerified", value: v }),
+    setPinThreshold: (v: number) =>
+      dispatch({ type: "setPinThreshold", value: v }),
   };
 }
 

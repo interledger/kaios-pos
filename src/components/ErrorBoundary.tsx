@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<
     return this.state.hasError ? (
       <div className="p-6 text-center">
         <h2 className="text-xl font-semibold">Something went wrong</h2>
-        <p className="text-white/70 mt-2">Please refresh the page.</p>
+        <p className="text-white-70 mt-2">Please refresh the page.</p>
       </div>
     ) : (
       this.props.children

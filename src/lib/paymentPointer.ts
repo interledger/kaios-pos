@@ -23,9 +23,9 @@ export async function handlePaymentPointerEnter(
     return false;
   }
   try {
-    const data = await get(pp);
+    const data = { assetCode: "EUR" }; //await get(pp); // Disabled actual fetch for demo purposes
     setPaymentPointer(pp);
-    setCurrency(data.assetCode);
+    setCurrency(data.assetCode || "EUR");
     nav("/menu");
     return true;
   } catch (error) {

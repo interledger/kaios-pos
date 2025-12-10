@@ -1,14 +1,8 @@
 {
   "compilerOptions": {
-  "target": "ES5",
+    "target": "ES5",
     "useDefineForClassFields": true,
-    "lib": [
-      "es5",
-      "es6",
-      "dom",
-      "es2015.promise",
-      "scripthost"
-    ],
+    "lib": ["es5", "es6", "es2017", "dom", "es2015.promise", "scripthost"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
@@ -25,7 +19,10 @@
       "@routes/*": ["src/routes/*"],
       "@state/*": ["src/state/*"],
       "@services/*": ["src/services/*"],
-      "@lib/*": ["src/lib/*"]
+      "@lib/*": ["src/lib/*"],
+      "@constants/*": ["src/constants/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@config": ["src/config/index.ts"]
     }
   },
   "include": ["src"]
